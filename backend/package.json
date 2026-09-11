@@ -1,0 +1,31 @@
+{
+  "name": "vehicomp-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Vehicle Rental & Fleet Management System",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --ci --runInBand --detectOpenHandles --forceExit"
+  },
+  "keywords": ["fleet", "rental", "express", "mongoose", "mongodb"],
+  "author": "MEMBER 2 - Fleet & Admin",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 10000
+  }
+}
