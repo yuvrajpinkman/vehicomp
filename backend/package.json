@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest --ci --runInBand --detectOpenHandles --forceExit"
+    "test": "jest --ci --runInBand --detectOpenHandles --forceExit",
+    "test:atlas": "node src/scripts/testAtlasConnection.js"
   },
   "keywords": ["fleet", "rental", "express", "mongoose", "mongodb"],
   "author": "MEMBER 2 - Fleet & Admin",
