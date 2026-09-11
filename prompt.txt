@@ -1,0 +1,769 @@
+You are my senior full-stack development assistant.
+
+I am MEMBER 1 of a two-person team developing:
+
+# VEHICLE RENTAL & FLEET MANAGEMENT SYSTEM
+
+We are developing this application on two different PCs and collaborating through a shared GitHub repository.
+
+My responsibility is the:
+
+**CUSTOMER & RENTAL MANAGEMENT MODULE**
+
+My teammate is responsible for:
+
+**FLEET & ADMINISTRATION MODULE**
+
+The final application must integrate both modules into one working system.
+
+---
+
+# 1. TECHNOLOGY STACK
+
+Use the following stack:
+
+Frontend:
+
+* React
+* Axios
+
+Backend:
+
+* Node.js
+* Express.js
+
+Database:
+
+* MongoDB Atlas
+* Mongoose
+
+Authentication:
+
+* JWT
+* bcrypt
+
+Testing:
+
+* Jest
+* Supertest
+* Playwright where appropriate
+
+Version Control:
+
+* Git
+* GitHub
+
+Do NOT switch to Supabase/PostgreSQL unless I explicitly ask you to.
+
+---
+
+# 2. ARCHITECTURE
+
+Use this architecture:
+
+React UI
+↓
+Axios
+↓
+REST API
+↓
+Authentication / Authorization
+↓
+Controller / Router
+↓
+Service Layer
+↓
+Repository / Mongoose Models
+↓
+MongoDB Atlas
+
+Keep frontend and backend properly separated.
+
+Suggested structure:
+
+/client
+/server
+
+Use clean, modular and maintainable code.
+
+---
+
+# 3. MY MODULE
+
+I am responsible for everything related to the CUSTOMER'S journey.
+
+My module includes:
+
+## Authentication
+
+* Register
+* Login
+* Logout
+* Password hashing
+* JWT authentication
+* JWT expiration
+* Authentication middleware
+* Customer role authorization
+* Validation
+
+## Vehicle Browsing
+
+* View vehicles
+* Search vehicles
+* Filter vehicles
+* Filter by vehicle type
+* Filter by location
+* Filter by price
+* Filter by fuel/energy type
+* View vehicle details
+* Check availability
+
+Vehicle types:
+
+HATCHBACK
+SEDAN
+SUV
+LUXURY
+ELECTRIC
+
+## Reservations
+
+* Create reservation
+* View my reservations
+* Cancel reservation
+* Date validation
+* Availability validation
+* Double-booking prevention
+
+CRITICAL:
+
+If:
+
+CAR1001
+10 Sep → 15 Sep
+
+is already reserved, then:
+
+CAR1001
+12 Sep → 14 Sep
+
+must be rejected.
+
+But:
+
+CAR1001
+16 Sep → 20 Sep
+
+must be allowed.
+
+The validation must happen on the BACKEND, not only on the frontend.
+
+## Rentals
+
+* Start rental
+* Active rental
+* Return vehicle
+* Rental history
+* Expected return time
+* Actual return time
+* Late-return detection
+* Late-return fee
+
+## Pricing
+
+Calculate:
+
+* Base rental price
+* Weekend charges
+* Peak-season charges
+* Insurance
+* Additional driver
+* Late-return fee
+* Damage charges
+
+## Invoice
+
+* Generate invoice
+* View invoice
+* Display complete price breakdown
+* Display final amount
+
+## Rating
+
+* Rate vehicle
+* Validate rating
+* Prevent inappropriate duplicate ratings
+* Calculate/display vehicle rating
+
+---
+
+# 4. GITHUB COLLABORATION
+
+We are using ONE shared GitHub repository.
+
+Branches:
+
+main
+feature/customer-rental
+feature/fleet-admin
+
+I work ONLY on:
+
+feature/customer-rental
+
+My teammate works ONLY on:
+
+feature/fleet-admin
+
+NEVER directly work on my teammate's branch.
+
+NEVER overwrite his work.
+
+NEVER use force push.
+
+The `main` branch represents the integrated/stable version.
+
+---
+
+# 5. STARTING EVERY DEVELOPMENT SESSION
+
+Before starting work:
+
+git checkout main
+git pull origin main
+
+Then:
+
+git checkout feature/customer-rental
+
+git pull origin feature/customer-rental
+
+If the branch does not exist:
+
+git checkout -b feature/customer-rental
+git push -u origin feature/customer-rental
+
+Always work with the latest code.
+
+---
+
+# 6. IMPORTANT COLLABORATION RULE
+
+My teammate and I may work simultaneously.
+
+Therefore:
+
+DO NOT blindly replace shared files.
+
+Before modifying a shared file:
+
+1. Check its current contents.
+2. Understand what functionality already exists.
+3. Preserve existing functionality.
+4. Make the smallest necessary change.
+5. Explain why the shared file was modified.
+
+Potential shared resources include:
+
+* User model
+* Vehicle model
+* Reservation model
+* Rental model
+* Authentication middleware
+* API configuration
+* Error handling
+* Database configuration
+
+Do NOT create duplicate models or duplicate APIs.
+
+If my teammate already created something that I need, reuse it.
+
+---
+
+# 7. DATABASE COLLABORATION
+
+Use MongoDB Atlas.
+
+Create one shared database for the complete project.
+
+Both developers must use the same database structure.
+
+Before creating a model:
+
+CHECK whether the model already exists.
+
+Shared entities include:
+
+User
+Vehicle
+Reservation
+Rental
+Maintenance
+Invoice
+Rating
+
+Use consistent:
+
+* Field names
+* IDs
+* Enum values
+* Status values
+* Relationships
+* API response format
+
+Do not create conflicting schemas.
+
+---
+
+# 8. DEVELOPMENT MUST BE STAGE-WISE
+
+DO NOT build the entire project at once.
+
+I need to show my manager DAILY PROGRESS.
+
+Therefore develop the project in clearly separated stages.
+
+## STAGE 1 — Project Setup
+
+Complete:
+
+* React setup
+* Node/Express setup
+* MongoDB Atlas connection
+* Mongoose setup
+* Git initialization
+* GitHub repository connection
+* `.gitignore`
+* `.env.example`
+* Basic client/server structure
+* Health-check API
+
+At the end:
+
+Commit:
+
+chore: initialize project structure
+
+Push to my branch.
+
+---
+
+## STAGE 2 — Authentication
+
+Implement:
+
+* User model
+* Registration
+* Login
+* Password hashing
+* JWT
+* Authentication middleware
+* Customer role
+
+Test registration/login.
+
+Commit:
+
+feat(auth): implement authentication
+
+---
+
+## STAGE 3 — Vehicle Browsing
+
+Implement:
+
+* Vehicle model integration
+* Vehicle listing
+* Search
+* Filters
+* Vehicle details
+* Availability API
+
+Use my teammate's Vehicle model if already created.
+
+Commit:
+
+feat(vehicles): implement customer vehicle browsing
+
+---
+
+## STAGE 4 — Reservations
+
+Implement:
+
+* Reservation model/integration
+* Create reservation
+* View reservations
+* Cancel reservation
+* Date validation
+* Availability checking
+* Double-booking prevention
+
+Add tests for overlapping/non-overlapping dates.
+
+Commit:
+
+feat(reservations): implement booking and conflict prevention
+
+---
+
+## STAGE 5 — Rental Management
+
+Implement:
+
+* Start rental
+* Active rental
+* Return rental
+* Rental history
+* Expected/actual return time
+* Late-return calculation
+
+Commit:
+
+feat(rentals): implement rental lifecycle
+
+---
+
+## STAGE 6 — Pricing & Invoice
+
+Implement:
+
+* Pricing service
+* Weekend charges
+* Peak charges
+* Insurance
+* Additional driver
+* Late fee
+* Damage charges
+* Invoice generation
+
+Commit:
+
+feat(pricing): implement rental pricing
+feat(invoice): implement invoice generation
+
+---
+
+## STAGE 7 — Rating & Customer Dashboard
+
+Implement:
+
+* Rating
+* Average rating
+* Rental history
+* Customer dashboard
+* Reservation history
+* Invoice access
+
+Commit:
+
+feat(customer): complete customer dashboard
+
+---
+
+## STAGE 8 — Testing & Integration
+
+Perform:
+
+* Unit testing
+* API testing
+* Validation testing
+* Negative testing
+* Authentication testing
+* Authorization testing
+* Double-booking testing
+* End-to-end testing
+
+Run the complete application.
+
+Check compatibility with my teammate's module.
+
+Commit:
+
+test: complete customer module testing
+
+---
+
+# 9. DAILY PROGRESS REQUIREMENT
+
+After completing each stage, provide me with a short report containing:
+
+1. What was completed today
+2. Files created
+3. Files modified
+4. APIs created
+5. Database changes
+6. Screens/pages completed
+7. Tests completed
+8. Git commit created
+9. Git push command
+10. What my teammate needs to know
+
+This report should be suitable for showing my manager.
+
+---
+
+# 10. COMMIT RULES
+
+Use small meaningful commits.
+
+Examples:
+
+feat(auth): add registration
+feat(auth): add JWT login
+feat(vehicles): add search
+feat(vehicles): add filtering
+feat(reservations): prevent double booking
+feat(rentals): add return flow
+feat(pricing): add late fee
+feat(invoice): generate invoice
+
+Avoid:
+
+"changes"
+"final"
+"updated"
+"done"
+"new code"
+
+---
+
+# 11. MERGING WORK
+
+I should NOT merge my branch into main blindly.
+
+Before merging:
+
+1. Push my completed stage.
+2. Inform my teammate.
+3. Ensure his current work is pushed.
+4. Pull latest main.
+5. Check for conflicts.
+6. Resolve conflicts carefully.
+7. Test the application.
+8. Merge only after verification.
+
+Preferred process:
+
+feature/customer-rental
+↓
+Pull latest main
+↓
+Resolve conflicts
+↓
+Test
+↓
+Pull Request
+↓
+main
+
+My teammate follows the same process with:
+
+feature/fleet-admin
+
+Do not delete branches immediately because we need the development history for demonstration.
+
+---
+
+# 12. DEMO REQUIREMENT
+
+Every stage must leave the application in a runnable state.
+
+I should be able to demonstrate incremental progress such as:
+
+Day 1:
+Project + MongoDB Atlas
+
+Day 2:
+Authentication
+
+Day 3:
+Vehicle browsing
+
+Day 4:
+Reservations
+
+Day 5:
+Rental
+
+Day 6:
+Pricing + Invoice
+
+Day 7:
+Dashboard + Rating
+
+Day 8:
+Testing + Integration
+
+Adjust the exact number of days according to actual development speed.
+
+NEVER claim a feature is complete if it does not work.
+
+---
+
+# 13. FINAL REQUIREMENT
+
+The final integrated application must provide a complete customer experience:
+
+Register/Login
+↓
+Search Vehicle
+↓
+Filter
+↓
+Check Availability
+↓
+Reserve
+↓
+Start Rental
+↓
+Return Vehicle
+↓
+Calculate Price
+↓
+Generate Invoice
+↓
+Rate Vehicle
+↓
+View Rental History
+
+The module must integrate correctly with my teammate's Fleet/Admin module.
+
+Before making major architectural changes, explain the impact on the other developer.
+
+Do not unnecessarily rewrite existing code.
+
+Start by inspecting the repository and telling me the current project structure and what Stage 1 work is required.
+
+# STAGE 9 — DEPLOYMENT & PRODUCTION
+
+After all features are integrated and tested, deploy the complete application.
+
+### Deployment Requirements
+
+Deploy the application so that it can be accessed through a public URL.
+
+Recommended approach:
+
+**Frontend**
+
+* Deploy the React application using a suitable frontend hosting platform such as Vercel.
+
+**Backend**
+
+* Deploy the Node.js + Express API using a suitable backend hosting platform such as Render or another appropriate service.
+
+**Database**
+
+* Use MongoDB Atlas as the production database.
+
+### Production Configuration
+
+Configure:
+
+* Production environment variables
+* MongoDB Atlas connection string
+* JWT secret
+* Backend API URL
+* Frontend API URL
+* CORS
+* Production build
+* Secure environment configuration
+
+IMPORTANT:
+
+* Never commit `.env` files or secrets to GitHub.
+* Use environment variables on the deployment platform.
+* Configure MongoDB Atlas network/database access correctly.
+* Ensure frontend and backend communicate correctly after deployment.
+* Test all APIs using the deployed backend URL.
+* Test the complete application using the deployed frontend URL.
+
+### Deployment Testing
+
+After deployment, verify:
+
+* Registration
+* Login
+* JWT authentication
+* Vehicle search
+* Availability
+* Reservation
+* Double-booking prevention
+* Rental start/return
+* Pricing
+* Invoice
+* Rating
+* Fleet management
+* Maintenance
+* Dashboard
+* Recommendation system
+* Location tracking if implemented
+
+### GitHub Deployment Workflow
+
+Before deployment:
+
+1. Ensure both feature branches are pushed.
+2. Merge completed features into `main`.
+3. Pull the latest `main`.
+4. Resolve any remaining conflicts.
+5. Run the complete test suite.
+6. Verify the production build.
+7. Deploy from the stable `main` branch.
+
+Final flow:
+
+feature/customer-rental
+↓
+PR
+↓
+main
+↑
+PR
+↑
+feature/fleet-admin
+
+```
+         ↓
+   Final Testing
+         ↓
+   Production Build
+         ↓
+     Deployment
+         ↓
+  Public Application
+```
+
+### Final Deliverables
+
+At the end of deployment, provide:
+
+* GitHub repository
+* Frontend deployed URL
+* Backend/API deployed URL
+* MongoDB Atlas database
+* API documentation
+* Test results
+* Final README
+* Setup instructions
+* Environment variable documentation
+* Screenshots/demo evidence
+
+The README must explain:
+
+* Project overview
+* Features
+* Tech stack
+* Architecture
+* Installation
+* Environment variables
+* Running locally
+* API endpoints
+* Database setup
+* Testing
+* Deployment
+* Team member contributions
+
+Do not consider the project complete until the deployed application has been tested end-to-end.
+
