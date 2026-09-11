@@ -1,6 +1,16 @@
 # Node dependencies
 node_modules/
 package-lock.json
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Production / Build
+dist/
+**/dist/
+build/
+**/build/
 
 # Environment variables
 .env
@@ -10,6 +20,9 @@ package-lock.json
 # Build outputs
 dist/
 build/
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Logs
 npm-debug.log*
@@ -26,3 +39,15 @@ logs/
 *.njsproj
 *.sln
 *.sw?
+lerna-debug.log*
+.pnpm-debug.log*
+*.log
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# OS and Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
