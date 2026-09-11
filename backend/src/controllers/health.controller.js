@@ -16,7 +16,7 @@ const getHealthStatus = (req, res) => {
 
   return res.status(200).json({
     status: 'ok',
-    service: 'vehicomp-fleet-admin-api',
+    service: 'vehicomp-backend',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
@@ -25,6 +25,11 @@ const getHealthStatus = (req, res) => {
       status: dbStatus,
       readyState: dbState,
     },
+    services: {
+      api: 'healthy',
+      database: dbStatus,
+    },
+    module: 'Vehicle Rental & Fleet Management System',
   });
 };
 

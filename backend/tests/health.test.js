@@ -6,7 +6,7 @@ describe('Health Check API', () => {
     const res = await request(app).get('/api/health');
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty('status', 'ok');
-    expect(res.body).toHaveProperty('service', 'vehicomp-fleet-admin-api');
+    expect(res.body).toHaveProperty('service', 'vehicomp-backend');
     expect(res.body).toHaveProperty('database');
     expect(res.body.database).toHaveProperty('status');
   });
