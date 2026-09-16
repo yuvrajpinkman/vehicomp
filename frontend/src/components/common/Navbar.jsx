@@ -25,10 +25,14 @@ function Navbar({ activeTab, setActiveTab, health }) {
           </div>
           <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0, lineHeight: 1.2 }}>
-              Vehicle Rental System
+              Vehicomp
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>
-              Customer Module (Member 1)
+              {activeTab === 'fleet'
+                ? 'Fleet & Administration Management (Member 2)'
+                : activeTab === 'auth'
+                ? 'Customer & Rental Management (Member 1)'
+                : 'System Diagnostics & Infrastructure'}
             </p>
           </div>
         </div>

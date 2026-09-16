@@ -46,9 +46,17 @@ export default function VehicleList() {
       if (searchTerm.trim()) params.search = searchTerm.trim();
 
       const response = await vehicleService.getAll(params);
-      setVehicles(response.data || []);
+      const vehicleList = Array.isArray(response.data?.data)
+        ? response.data.data
+        : Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response)
+        ? response
+        : [];
+      setVehicles(vehicleList);
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to load vehicles');
+      setVehicles([]);
     } finally {
       setLoading(false);
     }
@@ -73,22 +81,22 @@ export default function VehicleList() {
     try {
       await vehicleService.updateStatus(id, newStatus);
       setVehicles((prev) =>
-        prev.map((v) => (v._id === id ? { ...v, status: newStatus } : v))
+        (Array.isArray(prev) ? prev : []).map((v) => (v._id === id ? { ...v, status: newStatus } : v))
       );
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update vehicle status');
+      alert(err.message || 'Failed to update vehicle status');
     }
   };
 
   // Handle Toggle Active
   const handleToggleActive = async (id, currentActive) => {
     try {
-      const response = await vehicleService.toggleActive(id, !currentActive);
+      await vehicleService.toggleActive(id, !currentActive);
       setVehicles((prev) =>
-        prev.map((v) => (v._id === id ? { ...v, isActive: !currentActive } : v))
+        (Array.isArray(prev) ? prev : []).map((v) => (v._id === id ? { ...v, isActive: !currentActive } : v))
       );
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update vehicle active state');
+      alert(err.message || 'Failed to update vehicle active state');
     }
   };
 
@@ -97,9 +105,9 @@ export default function VehicleList() {
     if (!window.confirm(`Are you sure you want to remove vehicle ${reg} from the fleet?`)) return;
     try {
       await vehicleService.delete(id);
-      setVehicles((prev) => prev.filter((v) => v._id !== id));
+      setVehicles((prev) => (Array.isArray(prev) ? prev : []).filter((v) => v._id !== id));
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete vehicle');
+      alert(err.message || 'Failed to delete vehicle');
     }
   };
 
@@ -115,6 +123,8 @@ export default function VehicleList() {
       default: return { bg: 'rgba(255, 255, 255, 0.1)', text: '#cbd5e1', border: 'rgba(255, 255, 255, 0.2)' };
     }
   };
+
+  const vehicleList = Array.isArray(vehicles) ? vehicles : [];
 
   return (
     <div>
@@ -251,20 +261,20 @@ export default function VehicleList() {
             </tr>
           </thead>
           <tbody>
-            {loading && vehicles.length === 0 ? (
+            {loading && vehicleList.length === 0 ? (
               <tr>
                 <td colSpan="8" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                   Loading fleet inventory...
                 </td>
               </tr>
-            ) : vehicles.length === 0 ? (
+            ) : vehicleList.length === 0 ? (
               <tr>
                 <td colSpan="8" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                   No vehicles found matching current criteria. Click <strong>"Add Vehicle"</strong> to create one.
                 </td>
               </tr>
             ) : (
-              vehicles.map((v) => {
+              vehicleList.map((v) => {
                 const sBadge = statusBadgeColor(v.status);
                 return (
                   <tr
