@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const healthRoutes = require('./routes/health.routes');
+const vehicleRoutes = require('./routes/vehicle.routes');
 const { notFoundHandler, errorHandler } = require('./middlewares/error.middleware');
 
 const app = express();
@@ -24,6 +25,7 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/health', healthRoutes);
+app.use('/api/vehicles', vehicleRoutes);
 
 // Error handling
 app.use(notFoundHandler);
