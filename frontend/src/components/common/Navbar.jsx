@@ -52,6 +52,22 @@ function Navbar({ activeTab, setActiveTab, health }) {
             🔐 Auth & Account
           </button>
           <button
+            onClick={() => setActiveTab('fleet')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: activeTab === 'fleet' ? 'var(--primary, #6366f1)' : 'transparent',
+              color: activeTab === 'fleet' ? '#fff' : 'var(--text-muted)',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            🚗 Fleet Inventory
+          </button>
+          <button
             onClick={() => setActiveTab('diagnostics')}
             style={{
               padding: '0.5rem 1rem',
@@ -67,6 +83,7 @@ function Navbar({ activeTab, setActiveTab, health }) {
           >
             ⚡ Diagnostics & Health
           </button>
+
         </div>
 
         {/* Right User State & Health Badge */}

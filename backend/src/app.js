@@ -2,6 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const healthRoutes = require('./routes/health.routes');
 const authRoutes = require('./routes/auth.routes');
+
+let vehicleRoutes;
+try {
+  vehicleRoutes = require('./routes/vehicle.routes');
+} catch (e) {
+  vehicleRoutes = null;
+}
+
 const { notFoundHandler, errorHandler } = require('./middlewares/error.middleware');
 
 const app = express();
@@ -28,6 +36,9 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
+if (vehicleRoutes) {
+  app.use('/api/vehicles', vehicleRoutes);
+}
 
 // Error handling middlewares
 if (typeof notFoundHandler === 'function') {

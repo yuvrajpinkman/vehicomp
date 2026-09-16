@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import API, { getProfile } from './services/api';
+import API, { checkHealth, getProfile } from './services/api';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/common/Navbar';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
+import VehicleList from './components/fleet/VehicleList';
 import {
   Car,
   Server,
@@ -14,25 +15,27 @@ import {
   UserCheck,
   Key,
   CheckCircle,
-  Lock
+  Lock,
+  Wrench,
+  Users
 } from 'lucide-react';
 
 function AppContent() {
   const { user, token, isAuthenticated, logout } = useAuth();
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
-  const [activeTab, setActiveTab] = useState('auth'); // 'auth' | 'diagnostics'
+  const [activeTab, setActiveTab] = useState('auth'); // 'auth' | 'fleet' | 'diagnostics'
   const [health, setHealth] = useState(null);
   const [loadingHealth, setLoadingHealth] = useState(true);
   const [healthError, setHealthError] = useState(null);
   const [apiProfileResult, setApiProfileResult] = useState(null);
   const [testingProfile, setTestingProfile] = useState(false);
 
-  const checkHealth = async () => {
+  const fetchHealthStatus = async () => {
     setLoadingHealth(true);
     setHealthError(null);
     try {
-      const res = await API.get('/health');
-      setHealth(res.data);
+      const res = await checkHealth();
+      setHealth(res.data || res);
     } catch (err) {
       setHealthError(err.message || 'Failed to reach API server');
     } finally {
@@ -41,7 +44,7 @@ function AppContent() {
   };
 
   useEffect(() => {
-    checkHealth();
+    fetchHealthStatus();
   }, []);
 
   const handleTestProtectedEndpoint = async () => {
@@ -64,6 +67,8 @@ function AppContent() {
     }
   };
 
+  const isOnline = health?.services?.api === 'healthy' || health?.status === 'ok' || health?.status === 'success';
+
   return (
     <div className="app-container">
       {/* Navigation Header */}
@@ -71,7 +76,7 @@ function AppContent() {
 
       {/* Main Content Area */}
       <main>
-        {activeTab === 'auth' ? (
+        {activeTab === 'auth' && (
           <div>
             {!isAuthenticated ? (
               <div style={{ padding: '1rem 0' }}>
@@ -213,14 +218,21 @@ function AppContent() {
               </div>
             )}
           </div>
-        ) : (
-          /* System Diagnostics Tab */
+        )}
+
+        {activeTab === 'fleet' && (
+          <main className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
+            <VehicleList />
+          </main>
+        )}
+
+        {activeTab === 'diagnostics' && (
           <div className="glass-panel" style={{ padding: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Activity size={20} color="var(--primary)" /> System Diagnostics & Health Status
               </h2>
-              <button className="btn btn-primary" onClick={checkHealth} disabled={loadingHealth}>
+              <button className="btn btn-primary" onClick={fetchHealthStatus} disabled={loadingHealth}>
                 <RefreshCw size={16} className={loadingHealth ? 'spin' : ''} /> Refresh Status
               </button>
             </div>
@@ -236,8 +248,8 @@ function AppContent() {
                   Express.js REST API Server
                 </p>
                 <div>
-                  <span className={`status-badge ${health?.services?.api === 'healthy' || health?.status === 'healthy' || health?.status === 'success' ? 'online' : 'offline'}`}>
-                    {health ? 'Active on Port 5000' : 'Offline / Error'}
+                  <span className={`status-badge ${isOnline ? 'online' : 'offline'}`}>
+                    {isOnline ? 'Active on Port 5000' : 'Offline / Error'}
                   </span>
                 </div>
               </div>

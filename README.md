@@ -1,108 +1,73 @@
-# Vehicle Rental & Fleet Management System
+# 🚗 Vehicle Rental & Fleet Management System
 
-A full-stack, enterprise-grade vehicle rental and fleet management platform developed collaboratively.
-
-## Team Contributions & Modules
-
-* **Member 1 (Customer & Rental Management Module)**:
-  * Authentication (Customer role, JWT, Bcrypt)
-  * Vehicle Browsing & Advanced Search/Filters
-  * Reservations & Double-Booking Conflict Prevention
-  * Active Rental Management & Return Flow
-  * Dynamic Pricing Engine & Detailed Invoicing
-  * Rating & Review System
-  * Customer Dashboard
-
-* **Member 2 (Fleet & Administration Module)**:
-  * Fleet Inventory Management (CRUD operations on vehicles)
-  * Maintenance Scheduling & Tracking
-  * Admin Analytics & Operational Dashboard
+A comprehensive, full-stack enterprise application for vehicle rentals, customer bookings, and fleet administration. Built with modern React, Express.js, and MongoDB Atlas.
 
 ---
 
-## Technology Stack
+## 📋 Table of Contents
 
-* **Frontend**: React, Axios, Lucide Icons, Vite
-* **Backend**: Node.js, Express.js
-* **Database**: MongoDB Atlas, Mongoose
-* **Authentication**: JWT, bcryptjs
-* **Testing**: Jest, Supertest
+1. [Project Overview](#-project-overview)
+2. [Problem Statement](#-problem-statement)
+3. [Main Features](#-main-features)
+4. [Role-Based Features](#-role-based-features)
+5. [Vehicle Types](#-vehicle-types)
+6. [Vehicle Lifecycle State Machine](#-vehicle-lifecycle-state-machine)
+7. [Core Technical Modules](#-core-technical-modules)
+8. [Technology Stack](#-technology-stack)
+9. [System Architecture](#-system-architecture)
+10. [Project Folder Structure](#-project-folder-structure)
+11. [Database — MongoDB Atlas](#-database--mongodb-atlas)
+12. [Authentication and Authorization](#-authentication-and-authorization)
+13. [API Overview](#-api-overview)
+14. [Testing Suite](#-testing-suite)
+15. [Team Division & Responsibilities](#-team-division--responsibilities)
+16. [Local Setup & Environment Configuration](#-local-setup--environment-configuration)
+17. [Development Stages](#-development-stages)
 
 ---
 
-## Getting Started Locally
+## 🌐 Project Overview
 
-### Prerequisites
-* Node.js (v18+)
-* npm (v9+)
-* MongoDB Atlas database connection string
+The **Vehicle Rental & Fleet Management System** is a unified dual-module enterprise platform designed to manage both ends of the vehicle rental ecosystem:
+1. **Customer & Rental Management Module (Member 1)**: Covers customer authentication, vehicle browsing, reservation creation, rental agreement management, recommendation matching, and billing.
+2. **Fleet & Administration Module (Member 2)**: Covers fleet inventory CRUD, vehicle lifecycle status controls, automated maintenance locks, repair cost tracking, location tracking, and administrative analytics.
 
-### Backend Setup
+---
+
+## 🚗 Vehicle Lifecycle State Machine
+
+```
+[ AVAILABLE ] ──(Customer Reserve)──> [ RESERVED ]
+      ▲                                   │
+      │                               (Check-Out)
+ (Inspection                              │
+   Passed)                                ▼
+      │                              [ RENTED ]
+      │                                   │
+[ INSPECTION ] <──(Vehicle Return)────────┘
+      │
+ (Issues Found)
+      │
+      ▼
+[ MAINTENANCE ] ──(Repairs Complete)──> [ AVAILABLE ]
+```
+
+---
+
+## ⚙️ Local Setup & Environment Configuration
+
+### 1. Backend Setup
 ```bash
 cd backend
 npm install
 npm run dev
 ```
-Backend API will start on `http://localhost:5000`.
+Backend API will run on `http://localhost:5000`.
 
-### Frontend Setup
+### 2. Frontend Setup
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 Frontend UI will run on `http://localhost:3000`.
-
-
----
-
-## API Endpoints
-
-### Health & System
-* `GET /api/health` — System status & database connection state.
-# Vehicomp - Vehicle Rental & Fleet Management System
-
-A full-stack solution for vehicle rentals and fleet administration.
-
-## Architecture
-
-* **Frontend:** React, Axios, Vite
-* **Backend:** Node.js, Express.js
-* **Database:** MongoDB Atlas (Mongoose ODM)
-* **Authentication:** JWT, bcrypt
-
-## Module Responsibilities
-
-* **MEMBER 1:** Customer & Rental Management (`feature/customer-rental`)
-* **MEMBER 2:** Fleet & Administration Management (`feature/fleet-admin`)
-
----
-
-## Stage 1 Completed: Project & Database Setup
-
-* Modular `/backend` and `/frontend` architecture.
-* MongoDB Atlas connection verified with live read/write capability.
-* Centralized error handling and health-check API (`GET /api/health`).
-* Central Axios client with interceptors and Vite proxy configured.
-* Automated testing configured with Jest & Supertest.
-
----
-
-## Running the Application
-
-### 1. Backend Server
-```bash
-cd backend
-npm install
-npm run dev
-# Server runs on http://localhost:5000
-# Health check: http://localhost:5000/api/health
-```
-
-### 2. Frontend Application
-```bash
-cd frontend
-npm install
-npm run dev
-# Client runs on http://localhost:3000
-```
