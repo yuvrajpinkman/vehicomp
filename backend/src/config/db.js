@@ -11,9 +11,8 @@ const connectDB = async () => {
     return conn;
   } catch (error) {
     console.error(`[MongoDB] Connection error: ${error.message}`);
-    // If not in test environment, log clear message for Atlas/local setup
     if (process.env.NODE_ENV !== 'test') {
-      console.warn('[MongoDB] Running without active database connection. Ensure MongoDB Atlas or local MongoDB is running.');
+      console.warn('[MongoDB] Running without active database connection. Ensure MONGODB_URI is set or local MongoDB is running.');
     }
   }
 };
@@ -27,4 +26,7 @@ const disconnectDB = async () => {
   }
 };
 
-module.exports = { connectDB, disconnectDB };
+connectDB.connectDB = connectDB;
+connectDB.disconnectDB = disconnectDB;
+
+module.exports = connectDB;

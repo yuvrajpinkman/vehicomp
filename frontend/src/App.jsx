@@ -1,25 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import api, { checkHealth } from './services/api';
-import { Car, Server, Database, ShieldCheck, Activity, RefreshCw, Users, Wrench } from 'lucide-react';
-
+import API, { checkHealth, getProfile } from './services/api';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Navbar from './components/common/Navbar';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
 import VehicleList from './components/fleet/VehicleList';
+import {
+  Car,
+  Server,
+  Database,
+  ShieldCheck,
+  Activity,
+  RefreshCw,
+  UserCheck,
+  Key,
+  CheckCircle,
+  Lock,
+  Wrench,
+  Users
+} from 'lucide-react';
 
-function App() {
-  const [activeTab, setActiveTab] = useState('fleet');
+function AppContent() {
+  const { user, token, isAuthenticated, logout } = useAuth();
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
+  const [activeTab, setActiveTab] = useState('auth'); // 'auth' | 'fleet' | 'diagnostics'
   const [health, setHealth] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loadingHealth, setLoadingHealth] = useState(true);
+  const [healthError, setHealthError] = useState(null);
+  const [apiProfileResult, setApiProfileResult] = useState(null);
+  const [testingProfile, setTestingProfile] = useState(false);
 
   const fetchHealthStatus = async () => {
-    setLoading(true);
-    setError(null);
+    setLoadingHealth(true);
+    setHealthError(null);
     try {
-      const data = await checkHealth();
-      setHealth(data);
+      const res = await checkHealth();
+      setHealth(res.data || res);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to connect to backend server');
+      setHealthError(err.message || 'Failed to reach API server');
     } finally {
-      setLoading(false);
+      setLoadingHealth(false);
     }
   };
 
@@ -27,104 +47,193 @@ function App() {
     fetchHealthStatus();
   }, []);
 
+  const handleTestProtectedEndpoint = async () => {
+    setTestingProfile(true);
+    try {
+      const res = await getProfile();
+      setApiProfileResult({
+        status: 200,
+        success: true,
+        data: res.data
+      });
+    } catch (err) {
+      setApiProfileResult({
+        status: err.status || 401,
+        success: false,
+        error: err.message || 'Unauthorized'
+      });
+    } finally {
+      setTestingProfile(false);
+    }
+  };
+
   const isOnline = health?.services?.api === 'healthy' || health?.status === 'ok' || health?.status === 'success';
 
   return (
     <div className="app-container">
-      {/* Header Banner */}
-      <header className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '16px',
-              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)'
-            }}>
-              <Car size={30} color="#fff" />
-            </div>
-            <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: '700', margin: 0 }}>
-                Vehicle Rental & Fleet Management System
-              </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                Unified Platform — Customer & Rental Management (Member 1) & Fleet & Admin (Member 2)
-              </p>
-            </div>
-          </div>
-          <div>
-            <span className={`status-badge ${isOnline ? 'online' : 'offline'}`}>
-              <span className="pulse-dot"></span>
-              {loading ? 'Checking Status...' : isOnline ? 'System Online' : 'Service Disconnected'}
-            </span>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation Tab Bar */}
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
-        <button
-          onClick={() => setActiveTab('fleet')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.25rem',
-            borderRadius: '10px',
-            fontSize: '0.95rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            border: '1px solid',
-            borderColor: activeTab === 'fleet' ? 'var(--primary)' : 'var(--border-color)',
-            background: activeTab === 'fleet' ? 'var(--primary)' : 'rgba(255, 255, 255, 0.03)',
-            color: activeTab === 'fleet' ? '#fff' : 'var(--text-muted)',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          <Car size={18} /> Fleet Inventory (Stage 2)
-        </button>
-
-        <button
-          onClick={() => setActiveTab('diagnostics')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.25rem',
-            borderRadius: '10px',
-            fontSize: '0.95rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            border: '1px solid',
-            borderColor: activeTab === 'diagnostics' ? 'var(--primary)' : 'var(--border-color)',
-            background: activeTab === 'diagnostics' ? 'var(--primary)' : 'rgba(255, 255, 255, 0.03)',
-            color: activeTab === 'diagnostics' ? '#fff' : 'var(--text-muted)',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          <Activity size={18} /> System Diagnostics &amp; Baseline (Stage 1)
-        </button>
-      </div>
+      {/* Navigation Header */}
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} health={health} />
 
       {/* Main Content Area */}
-      {activeTab === 'fleet' ? (
-        <main className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
-          <VehicleList />
-        </main>
-      ) : (
-        <>
-          {/* Main Content Dashboard */}
+      <main>
+        {activeTab === 'auth' && (
+          <div>
+            {!isAuthenticated ? (
+              <div style={{ padding: '1rem 0' }}>
+                {authMode === 'login' ? (
+                  <Login onSwitchToRegister={() => setAuthMode('register')} />
+                ) : (
+                  <Register onSwitchToLogin={() => setAuthMode('login')} />
+                )}
+              </div>
+            ) : (
+              /* Authenticated Customer Dashboard Preview */
+              <div className="glass-panel" style={{ padding: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div>
+                    <span className="status-badge online" style={{ marginBottom: '0.5rem', display: 'inline-flex', gap: '0.4rem', alignItems: 'center' }}>
+                      <CheckCircle size={14} /> Stage 2 — Authentication Verified
+                    </span>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginTop: '0.25rem' }}>
+                      Welcome back, {user?.name}! 👋
+                    </h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                      Logged in as <strong>{user?.email}</strong> with role <span style={{ color: '#818cf8', fontWeight: '600' }}>{user?.role || 'CUSTOMER'}</span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="btn"
+                    style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#fca5a5' }}
+                  >
+                    Logout Account
+                  </button>
+                </div>
+
+                {/* Grid Cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
+                  
+                  {/* User Profile Info Card */}
+                  <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                      <UserCheck color="#10b981" size={24} />
+                      <h3 style={{ fontSize: '1.1rem' }}>Customer Profile</h3>
+                    </div>
+                    <div style={{ fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(255,255,255,0.1)', paddingBottom: '0.4rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Customer ID:</span>
+                        <code style={{ fontSize: '0.8rem', color: '#93c5fd' }}>{user?._id || user?.id}</code>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(255,255,255,0.1)', paddingBottom: '0.4rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Phone:</span>
+                        <span>{user?.phone || 'Not provided'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(255,255,255,0.1)', paddingBottom: '0.4rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Driver License:</span>
+                        <span>{user?.licenseNumber || 'Not provided'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Registered:</span>
+                        <span>{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Active Session'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* JWT Session Token Card */}
+                  <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                      <Key color="#6366f1" size={24} />
+                      <h3 style={{ fontSize: '1.1rem' }}>JWT Security Session</h3>
+                    </div>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
+                      Bearer Token stored securely in browser state & Authorization headers:
+                    </p>
+                    <div style={{
+                      background: 'rgba(15, 23, 42, 0.8)',
+                      padding: '0.75rem',
+                      borderRadius: '8px',
+                      fontFamily: 'monospace',
+                      fontSize: '0.75rem',
+                      color: '#a5b4fc',
+                      wordBreak: 'break-all',
+                      border: '1px solid rgba(99, 102, 241, 0.2)',
+                      maxHeight: '70px',
+                      overflowY: 'auto'
+                    }}>
+                      {token}
+                    </div>
+                  </div>
+
+                  {/* Test Protected API Endpoint Card */}
+                  <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                      <Lock color="#f59e0b" size={24} />
+                      <h3 style={{ fontSize: '1.1rem' }}>Protected Route Test</h3>
+                    </div>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                      Verify backend authentication middleware by querying <code>/api/auth/me</code>:
+                    </p>
+                    <button
+                      onClick={handleTestProtectedEndpoint}
+                      disabled={testingProfile}
+                      style={{
+                        padding: '0.6rem 1rem',
+                        borderRadius: '8px',
+                        background: 'rgba(245, 158, 11, 0.15)',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        color: '#fbbf24',
+                        fontWeight: '600',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      <RefreshCw size={14} className={testingProfile ? 'spin' : ''} />
+                      Test <code>/api/auth/me</code>
+                    </button>
+
+                    {apiProfileResult && (
+                      <div style={{ marginTop: '0.75rem', padding: '0.6rem', borderRadius: '6px', background: apiProfileResult.success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', fontSize: '0.8rem', color: apiProfileResult.success ? '#34d399' : '#fca5a5' }}>
+                        HTTP {apiProfileResult.status}: {apiProfileResult.success ? 'Authorized User Profile Received ✅' : apiProfileResult.error}
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Stage Roadmap Footer */}
+                <div style={{ marginTop: '2rem', padding: '1.25rem', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div>
+                    <h4 style={{ fontSize: '0.95rem', fontWeight: '600', color: '#c7d2fe', margin: '0 0 0.25rem 0' }}>
+                      Ready for Stage 3: Vehicle Browsing
+                    </h4>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                      Authentication is complete. Next stage will introduce vehicle search, filtering, and availability checking.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'fleet' && (
           <main className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
+            <VehicleList />
+          </main>
+        )}
+
+        {activeTab === 'diagnostics' && (
+          <div className="glass-panel" style={{ padding: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Activity size={20} color="var(--primary)" /> System Diagnostics &amp; Stage 1 Status
+                <Activity size={20} color="var(--primary)" /> System Diagnostics & Health Status
               </h2>
-              <button className="btn btn-primary" onClick={fetchHealthStatus} disabled={loading}>
-                <RefreshCw size={16} className={loading ? 'spin' : ''} /> Refresh Status
+              <button className="btn btn-primary" onClick={fetchHealthStatus} disabled={loadingHealth}>
+                <RefreshCw size={16} className={loadingHealth ? 'spin' : ''} /> Refresh Status
               </button>
             </div>
 
@@ -155,84 +264,46 @@ function App() {
                   MongoDB Atlas Connection
                 </p>
                 <div>
-                  <span className={`status-badge ${health?.database?.status === 'connected' || health?.services?.database === 'connected' ? 'online' : 'offline'}`}>
-                    {health?.database?.status === 'connected' || health?.services?.database === 'connected' ? 'Connected' : 'Pending URI Config'}
+                  <span className={`status-badge ${health?.services?.database === 'connected' || health?.database?.status === 'connected' ? 'online' : 'offline'}`}>
+                    {health?.services?.database === 'connected' || health?.database?.status === 'connected' ? 'Connected' : 'Pending URI Config'}
                   </span>
                 </div>
               </div>
 
-              {/* System Setup Status Card */}
+              {/* Active Module Card */}
               <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                   <ShieldCheck color="var(--primary)" size={24} />
-                  <h3 style={{ fontSize: '1.1rem' }}>Project Consolidation</h3>
+                  <h3 style={{ fontSize: '1.1rem' }}>Active Module</h3>
                 </div>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                  Unified Structure (/frontend &amp; /backend)
+                  {health?.module || 'Customer & Rental Management'}
                 </p>
                 <div>
                   <span className="status-badge online" style={{ background: 'rgba(99,102,241,0.15)', color: 'var(--primary)', borderColor: 'var(--border-accent)' }}>
-                    Stage 1 — Consolidated &amp; Ready
+                    Stage 2 — Auth Integrated
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Detailed Backend Response Metadata */}
-            {health && (
-              <div style={{ marginTop: '2rem', padding: '1.25rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
-                <h4 style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Backend Health Details
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', fontSize: '0.9rem' }}>
-                  <div><strong>Service:</strong> {health.service || 'vehicomp-backend'}</div>
-                  <div><strong>Environment:</strong> {health.environment || 'development'}</div>
-                  <div><strong>DB State:</strong> {health.database?.status || health.services?.database || 'disconnected'}</div>
-                  <div><strong>Uptime:</strong> {health.uptime ? `${Math.round(health.uptime)}s` : 'N/A'}</div>
-                </div>
-              </div>
-            )}
-
-            {error && (
+            {healthError && (
               <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-sm)', color: '#fca5a5' }}>
-                ⚠️ <strong>Error connecting to backend:</strong> {error}
+                ⚠️ <strong>Error connecting to backend:</strong> {healthError}
               </div>
             )}
-          </main>
-
-          {/* Module Responsibilities Summary */}
-          <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-            <div className="glass-panel" style={{ padding: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                <Users color="var(--primary)" size={24} />
-                <h3 style={{ fontSize: '1.15rem' }}>Member 1: Customer &amp; Rental Module</h3>
-              </div>
-              <ul style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.8', paddingLeft: '1.2rem' }}>
-                <li>Authentication (Register, Login, Role Guards)</li>
-                <li>Customer Dashboard &amp; Profile Management</li>
-                <li>Vehicle Catalog &amp; Recommendation Engine</li>
-                <li>Booking, Reservation &amp; Double-Booking Prevention</li>
-                <li>Rental Agreement Lifecycle &amp; Invoicing</li>
-              </ul>
-            </div>
-
-            <div className="glass-panel" style={{ padding: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                <Wrench color="var(--accent-cyan)" size={24} />
-                <h3 style={{ fontSize: '1.15rem' }}>Member 2: Fleet &amp; Admin Module</h3>
-              </div>
-              <ul style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.8', paddingLeft: '1.2rem' }}>
-                <li>Fleet Management &amp; Vehicle Inventory CRUD</li>
-                <li>Vehicle Status Controls (Available, Reserved, Rented, Maintenance)</li>
-                <li>Automated Maintenance Scheduling &amp; Repair Cost Tracking</li>
-                <li>System Admin &amp; Analytics Dashboard</li>
-                <li>Location Tracking &amp; Fleet Utilization Logs</li>
-              </ul>
-            </div>
-          </section>
-        </>
-      )}
+          </div>
+        )}
+      </main>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

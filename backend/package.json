@@ -10,10 +10,10 @@
     "test:atlas": "node src/scripts/testAtlasConnection.js"
   },
   "keywords": ["fleet", "rental", "express", "mongoose", "mongodb"],
-  "author": "MEMBER 2 - Fleet & Admin",
+  "author": "Vehicle Rental Team",
   "license": "MIT",
   "dependencies": {
-    "bcryptjs": "^3.0.3",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
