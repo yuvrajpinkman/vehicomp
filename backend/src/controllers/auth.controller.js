@@ -1,5 +1,12 @@
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { signToken } = require('../utils/jwt');
+
+// In-memory user store fallback
+let inMemoryUsers = [];
+
+const isDbConnected = () => mongoose.connection.readyState === 1;
 
 /**
  * @desc    Register a new customer / user
@@ -25,42 +32,81 @@ const register = async (req, res, next) => {
       });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
+    const emailLower = email.toLowerCase().trim();
+
+    if (isDbConnected()) {
+      try {
+        const existingUser = await User.findOne({ email: emailLower });
+        if (existingUser) {
+          return res.status(400).json({
+            success: false,
+            message: 'Email address is already registered',
+          });
+        }
+
+        const userRole = role ? role.toUpperCase() : 'CUSTOMER';
+        const user = await User.create({
+          name,
+          email: emailLower,
+          password,
+          phone: phone || '',
+          role: userRole,
+          licenseNumber: licenseNumber || '',
+          address: address || '',
+        });
+
+        const token = signToken({ id: user._id, email: user.email, role: user.role });
+        const userObj = user.toObject();
+        delete userObj.password;
+
+        return res.status(201).json({
+          success: true,
+          message: 'User registered successfully',
+          token,
+          user: userObj,
+        });
+      } catch (err) {
+        console.warn('[Auth] DB registration query failed, falling back to in-memory store:', err.message);
+      }
+    }
+
+    // In-memory fallback
+    const existing = inMemoryUsers.find((u) => u.email === emailLower);
+    if (existing) {
       return res.status(400).json({
         success: false,
         message: 'Email address is already registered',
       });
     }
 
-    // Create User (default role is CUSTOMER)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const id = new mongoose.Types.ObjectId().toString();
     const userRole = role ? role.toUpperCase() : 'CUSTOMER';
-    const user = await User.create({
+
+    const newUser = {
+      _id: id,
+      id,
       name,
-      email,
-      password,
+      email: emailLower,
+      password: hashedPassword,
       phone: phone || '',
       role: userRole,
       licenseNumber: licenseNumber || '',
       address: address || '',
-    });
+      createdAt: new Date().toISOString(),
+    };
 
-    // Generate Auth Token
-    const token = signToken({
-      id: user._id,
-      email: user.email,
-      role: user.role,
-    });
+    inMemoryUsers.push(newUser);
 
-    const userObj = user.toObject();
-    delete userObj.password;
+    const token = signToken({ id: newUser._id, email: newUser.email, role: newUser.role });
+    const { password: _, ...userWithoutPassword } = newUser;
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'User registered successfully',
       token,
-      user: userObj,
+      user: userWithoutPassword,
     });
   } catch (error) {
     next(error);
@@ -76,7 +122,6 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Validate email & password presence
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -84,17 +129,38 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Find user and explicitly select password field
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
-    if (!user) {
+    const emailLower = email.toLowerCase().trim();
+
+    if (isDbConnected()) {
+      try {
+        const user = await User.findOne({ email: emailLower }).select('+password');
+        if (user && (await user.comparePassword(password))) {
+          const token = signToken({ id: user._id, email: user.email, role: user.role });
+          const userObj = user.toObject();
+          delete userObj.password;
+
+          return res.status(200).json({
+            success: true,
+            message: 'Logged in successfully',
+            token,
+            user: userObj,
+          });
+        }
+      } catch (err) {
+        console.warn('[Auth] DB login query failed, falling back to in-memory store:', err.message);
+      }
+    }
+
+    // In-memory fallback
+    const memUser = inMemoryUsers.find((u) => u.email === emailLower);
+    if (!memUser) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password credentials',
       });
     }
 
-    // Check if password matches
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await bcrypt.compare(password, memUser.password);
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -102,21 +168,14 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Generate Token
-    const token = signToken({
-      id: user._id,
-      email: user.email,
-      role: user.role,
-    });
+    const token = signToken({ id: memUser._id, email: memUser.email, role: memUser.role });
+    const { password: _, ...userWithoutPassword } = memUser;
 
-    const userObj = user.toObject();
-    delete userObj.password;
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Logged in successfully',
       token,
-      user: userObj,
+      user: userWithoutPassword,
     });
   } catch (error) {
     next(error);
@@ -130,18 +189,29 @@ const login = async (req, res, next) => {
  */
 const getMe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User profile not found',
-      });
+    if (isDbConnected()) {
+      try {
+        const user = await User.findById(req.user.id);
+        if (user) {
+          return res.status(200).json({ success: true, user });
+        }
+      } catch (err) {
+        // Fallback below
+      }
     }
 
-    res.status(200).json({
-      success: true,
-      user,
-    });
+    const memUser = inMemoryUsers.find((u) => u._id === req.user.id.toString());
+    if (memUser) {
+      const { password: _, ...userWithoutPassword } = memUser;
+      return res.status(200).json({ success: true, user: userWithoutPassword });
+    }
+
+    // If request user exists from token
+    if (req.user) {
+      return res.status(200).json({ success: true, user: req.user });
+    }
+
+    return res.status(404).json({ success: false, message: 'User profile not found' });
   } catch (error) {
     next(error);
   }
