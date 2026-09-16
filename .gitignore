@@ -26,3 +26,7 @@ logs/
 *.njsproj
 *.sln
 *.sw?
+
+# Prompt / Internal Instructions
+prompt.txt
+

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const healthRoutes = require('./routes/health.routes');
+const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 
@@ -14,6 +15,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health Check Route
 app.use('/api/health', healthRoutes);
+
+// Auth Routes
+app.use('/api/auth', authRoutes);
 
 // Root Welcome Route
 app.get('/', (req, res) => {

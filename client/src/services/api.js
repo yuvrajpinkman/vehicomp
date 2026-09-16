@@ -34,4 +34,10 @@ API.interceptors.response.use(
   }
 );
 
+// Auth API methods
+export const registerUser = (userData) => API.post('/auth/register', userData);
+export const loginUser = (credentials) => API.post('/auth/login', credentials);
+export const getProfile = () => API.get('/auth/me');
+
 export default API;
+
