@@ -126,13 +126,10 @@ h1, h2, h3, h4, h5, h6 {
   animation: pulse 2s infinite;
 }
 
-<<<<<<< HEAD
-=======
 .spin {
   animation: spin 1s linear infinite;
 }
 
->>>>>>> origin/main
 @keyframes pulse {
   0% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(1.2); }
@@ -142,11 +139,4 @@ h1, h2, h3, h4, h5, h6 {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
-<<<<<<< HEAD
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-=======
->>>>>>> origin/main
 }
