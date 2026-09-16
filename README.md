@@ -37,21 +37,22 @@ A full-stack, enterprise-grade vehicle rental and fleet management platform deve
 * npm (v9+)
 * MongoDB Atlas database connection string
 
-### Server Setup
+### Backend Setup
 ```bash
-cd server
+cd backend
 npm install
 npm run dev
 ```
-Server will start on `http://localhost:5000`.
+Backend API will start on `http://localhost:5000`.
 
-### Client Setup
+### Frontend Setup
 ```bash
-cd client
+cd frontend
 npm install
 npm run dev
 ```
-Client will run on `http://localhost:3000`.
+Frontend UI will run on `http://localhost:3000`.
+
 
 ---
 
