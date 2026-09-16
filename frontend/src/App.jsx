@@ -13,15 +13,12 @@ import {
   RefreshCw,
   UserCheck,
   Key,
-  Calendar,
   CheckCircle,
-  FileText,
-  AlertTriangle,
   Lock
 } from 'lucide-react';
 
 function AppContent() {
-  const { user, token, isAuthenticated, logout, loading: authLoading } = useAuth();
+  const { user, token, isAuthenticated, logout } = useAuth();
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
   const [activeTab, setActiveTab] = useState('auth'); // 'auth' | 'diagnostics'
   const [health, setHealth] = useState(null);
@@ -239,8 +236,8 @@ function AppContent() {
                   Express.js REST API Server
                 </p>
                 <div>
-                  <span className={`status-badge ${health?.services?.api === 'healthy' ? 'online' : 'offline'}`}>
-                    {health?.services?.api === 'healthy' ? 'Active on Port 5000' : 'Offline / Error'}
+                  <span className={`status-badge ${health?.services?.api === 'healthy' || health?.status === 'healthy' || health?.status === 'success' ? 'online' : 'offline'}`}>
+                    {health ? 'Active on Port 5000' : 'Offline / Error'}
                   </span>
                 </div>
               </div>
@@ -255,8 +252,8 @@ function AppContent() {
                   MongoDB Atlas Connection
                 </p>
                 <div>
-                  <span className={`status-badge ${health?.services?.database === 'connected' ? 'online' : 'offline'}`}>
-                    {health?.services?.database === 'connected' ? 'Connected' : 'Pending URI Config'}
+                  <span className={`status-badge ${health?.services?.database === 'connected' || health?.database?.status === 'connected' ? 'online' : 'offline'}`}>
+                    {health?.services?.database === 'connected' || health?.database?.status === 'connected' ? 'Connected' : 'Pending URI Config'}
                   </span>
                 </div>
               </div>

@@ -6,12 +6,13 @@ const API = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000,
 });
 
 // Request interceptor to append JWT token if available
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || localStorage.getItem('vehicomp_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -38,6 +39,6 @@ API.interceptors.response.use(
 export const registerUser = (userData) => API.post('/auth/register', userData);
 export const loginUser = (credentials) => API.post('/auth/login', credentials);
 export const getProfile = () => API.get('/auth/me');
+export const checkHealth = () => API.get('/health');
 
 export default API;
-
