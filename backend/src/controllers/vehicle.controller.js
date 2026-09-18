@@ -106,6 +106,21 @@ class VehicleController {
       next(error);
     }
   }
+
+  // GET /api/vehicles/:id/availability
+  async checkVehicleAvailability(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { startDate, endDate } = req.query;
+      const availabilityInfo = await vehicleService.checkVehicleAvailability(id, startDate, endDate);
+      return res.status(200).json({
+        success: true,
+        data: availabilityInfo,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new VehicleController();

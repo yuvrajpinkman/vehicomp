@@ -238,6 +238,12 @@ class VehicleService {
     if (city) {
       filtered = filtered.filter((v) => v.location?.city?.toLowerCase().includes(city.toLowerCase()));
     }
+    if (minPrice) {
+      filtered = filtered.filter((v) => (v.pricePerDay || 0) >= Number(minPrice));
+    }
+    if (maxPrice) {
+      filtered = filtered.filter((v) => (v.pricePerDay || 0) <= Number(maxPrice));
+    }
     if (search) {
       const s = search.toLowerCase();
       filtered = filtered.filter(
@@ -408,6 +414,77 @@ class VehicleService {
     inMemoryVehicles[index].isDeleted = true;
     inMemoryVehicles[index].isActive = false;
     return { message: 'Vehicle deleted successfully', vehicleId: id };
+  }
+
+  /**
+   * Check vehicle availability for specified dates and compute estimated price
+   */
+  async checkVehicleAvailability(id, startDate, endDate) {
+    const vehicle = await this.getVehicleById(id);
+    if (!vehicle) {
+      const error = new Error('Vehicle not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (!vehicle.isActive) {
+      return {
+        vehicleId: id,
+        available: false,
+        reason: 'Vehicle is currently inactive in system',
+        vehicle,
+      };
+    }
+
+    if (vehicle.status === 'MAINTENANCE' || vehicle.status === 'DAMAGED') {
+      return {
+        vehicleId: id,
+        available: false,
+        reason: `Vehicle is currently under ${vehicle.status.toLowerCase()}`,
+        vehicle,
+      };
+    }
+
+    let days = 1;
+    const pricePerDay = vehicle.pricePerDay || 0;
+    let estimatedTotal = pricePerDay;
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        const error = new Error('Invalid start or end date format');
+        error.statusCode = 400;
+        throw error;
+      }
+
+      if (start >= end) {
+        const error = new Error('End date must be strictly after start date');
+        error.statusCode = 400;
+        throw error;
+      }
+
+      const diffTime = Math.abs(end - start);
+      days = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+      estimatedTotal = days * pricePerDay;
+    }
+
+    const isAvailable = vehicle.status === 'AVAILABLE';
+
+    return {
+      vehicleId: id,
+      available: isAvailable,
+      reason: isAvailable
+        ? 'Vehicle is available for reservation'
+        : `Vehicle status is currently ${vehicle.status}`,
+      startDate: startDate || null,
+      endDate: endDate || null,
+      rentalDays: days,
+      pricePerDay,
+      estimatedTotal,
+      vehicle,
+    };
   }
 }
 
