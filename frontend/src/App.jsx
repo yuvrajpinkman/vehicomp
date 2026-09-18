@@ -5,6 +5,7 @@ import Navbar from './components/common/Navbar';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import VehicleList from './components/fleet/VehicleList';
+import CustomerVehicleBrowse from './components/customer/CustomerVehicleBrowse';
 import {
   Car,
   Server,
@@ -23,7 +24,7 @@ import {
 function AppContent() {
   const { user, token, isAuthenticated, logout } = useAuth();
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
-  const [activeTab, setActiveTab] = useState('auth'); // 'auth' | 'fleet' | 'diagnostics'
+  const [activeTab, setActiveTab] = useState('browse'); // 'browse' | 'auth' | 'fleet' | 'diagnostics'
   const [health, setHealth] = useState(null);
   const [loadingHealth, setLoadingHealth] = useState(true);
   const [healthError, setHealthError] = useState(null);
@@ -217,6 +218,12 @@ function AppContent() {
 
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'browse' && (
+          <div style={{ marginBottom: '2rem' }}>
+            <CustomerVehicleBrowse />
           </div>
         )}
 

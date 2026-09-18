@@ -56,6 +56,22 @@ function Navbar({ activeTab, setActiveTab, health }) {
             🔐 Auth & Account
           </button>
           <button
+            onClick={() => setActiveTab('browse')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: activeTab === 'browse' ? 'var(--primary, #6366f1)' : 'transparent',
+              color: activeTab === 'browse' ? '#fff' : 'var(--text-muted)',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            🚘 Browse Vehicles
+          </button>
+          <button
             onClick={() => setActiveTab('fleet')}
             style={{
               padding: '0.5rem 1rem',

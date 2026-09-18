@@ -179,6 +179,34 @@ describe('Vehicle Management API (/api/vehicles)', () => {
     });
   });
 
+  describe('GET /api/vehicles/:id/availability', () => {
+    it('should check vehicle availability for given date range', async () => {
+      // First reactivate test vehicle
+      await request(app).patch(`/api/vehicles/${createdVehicleId}/deactivate`).send({ isActive: true });
+      await request(app).patch(`/api/vehicles/${createdVehicleId}/status`).send({ status: 'AVAILABLE' });
+
+      const startDate = '2026-10-01';
+      const endDate = '2026-10-05';
+
+      const res = await request(app)
+        .get(`/api/vehicles/${createdVehicleId}/availability?startDate=${startDate}&endDate=${endDate}`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.available).toBe(true);
+      expect(res.body.data.rentalDays).toBe(4);
+      expect(res.body.data.estimatedTotal).toBeGreaterThan(0);
+    });
+
+    it('should reject invalid date ranges where endDate <= startDate', async () => {
+      const res = await request(app)
+        .get(`/api/vehicles/${createdVehicleId}/availability?startDate=2026-10-05&endDate=2026-10-01`);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+  });
+
   describe('DELETE /api/vehicles/:id', () => {
     it('should soft delete vehicle', async () => {
       const res = await request(app).delete(`/api/vehicles/${createdVehicleId}`);

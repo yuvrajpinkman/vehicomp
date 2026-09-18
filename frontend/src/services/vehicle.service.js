@@ -21,6 +21,10 @@ export const vehicleService = {
 
   // Soft delete vehicle
   delete: (id) => api.delete(`/vehicles/${id}`),
+
+  // Check vehicle availability for date range
+  checkAvailability: (id, startDate, endDate) =>
+    api.get(`/vehicles/${id}/availability`, { params: { startDate, endDate } }),
 };
 
 export default vehicleService;
