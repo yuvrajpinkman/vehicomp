@@ -36,21 +36,7 @@ The **Vehicle Rental & Fleet Management System** is a unified dual-module enterp
 
 ## 🚗 Vehicle Lifecycle State Machine
 
-```
-[ AVAILABLE ] ──(Customer Reserve)──> [ RESERVED ]
-      ▲                                   │
-      │                               (Check-Out)
- (Inspection                              │
-   Passed)                                ▼
-      │                              [ RENTED ]
-      │                                   │
-[ INSPECTION ] <──(Vehicle Return)────────┘
-      │
- (Issues Found)
-      │
-      ▼
-[ MAINTENANCE ] ──(Repairs Complete)──> [ AVAILABLE ]
-```
+![Vehicle Lifecycle State Machine](./assets/vehicle-lifecycle-state-machine.png)
 
 ---
 
