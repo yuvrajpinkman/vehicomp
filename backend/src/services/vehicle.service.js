@@ -448,6 +448,7 @@ class VehicleService {
     let days = 1;
     const pricePerDay = vehicle.pricePerDay || 0;
     let estimatedTotal = pricePerDay;
+    let conflict = null;
 
     if (startDate && endDate) {
       const start = new Date(startDate);
@@ -468,21 +469,37 @@ class VehicleService {
       const diffTime = Math.abs(end - start);
       days = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
       estimatedTotal = days * pricePerDay;
+
+      try {
+        const reservationService = require('./reservation.service');
+        conflict = await reservationService.checkVehicleConflict(id, start, end);
+      } catch (err) {
+        console.warn('[VehicleService] Reservation conflict check warning:', err.message);
+      }
     }
 
-    const isAvailable = vehicle.status === 'AVAILABLE';
+    let isAvailable = vehicle.status === 'AVAILABLE';
+    let availabilityReason = isAvailable
+      ? 'Vehicle is available for reservation'
+      : `Vehicle status is currently ${vehicle.status}`;
+
+    if (conflict) {
+      isAvailable = false;
+      const cStartStr = new Date(conflict.startDate).toISOString().split('T')[0];
+      const cEndStr = new Date(conflict.endDate).toISOString().split('T')[0];
+      availabilityReason = `Vehicle is already reserved from ${cStartStr} to ${cEndStr}`;
+    }
 
     return {
       vehicleId: id,
       available: isAvailable,
-      reason: isAvailable
-        ? 'Vehicle is available for reservation'
-        : `Vehicle status is currently ${vehicle.status}`,
+      reason: availabilityReason,
       startDate: startDate || null,
       endDate: endDate || null,
       rentalDays: days,
       pricePerDay,
       estimatedTotal,
+      conflictingReservation: conflict || null,
       vehicle,
     };
   }

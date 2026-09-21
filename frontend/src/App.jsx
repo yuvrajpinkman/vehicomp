@@ -6,6 +6,7 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import VehicleList from './components/fleet/VehicleList';
 import CustomerVehicleBrowse from './components/customer/CustomerVehicleBrowse';
+import MyReservations from './components/customer/MyReservations';
 import {
   Car,
   Server,
@@ -223,7 +224,13 @@ function AppContent() {
 
         {activeTab === 'browse' && (
           <div style={{ marginBottom: '2rem' }}>
-            <CustomerVehicleBrowse />
+            <CustomerVehicleBrowse onNavigateToReservations={() => setActiveTab('reservations')} />
+          </div>
+        )}
+
+        {activeTab === 'reservations' && (
+          <div style={{ marginBottom: '2rem' }}>
+            <MyReservations onBrowseVehicles={() => setActiveTab('browse')} />
           </div>
         )}
 

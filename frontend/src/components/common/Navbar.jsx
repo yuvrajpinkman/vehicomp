@@ -72,6 +72,22 @@ function Navbar({ activeTab, setActiveTab, health }) {
             🚘 Browse Vehicles
           </button>
           <button
+            onClick={() => setActiveTab('reservations')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: activeTab === 'reservations' ? 'var(--primary, #6366f1)' : 'transparent',
+              color: activeTab === 'reservations' ? '#fff' : 'var(--text-muted)',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            📅 My Reservations
+          </button>
+          <button
             onClick={() => setActiveTab('fleet')}
             style={{
               padding: '0.5rem 1rem',

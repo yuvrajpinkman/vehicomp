@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import vehicleService from '../../services/vehicle.service';
+import ReservationModal from './ReservationModal';
 import {
   Car, Search, Filter, Calendar, MapPin, Zap, Fuel, Users,
   CheckCircle, AlertCircle, Info, ArrowRight, ShieldCheck, X, RefreshCw, DollarSign, Sparkles
@@ -9,10 +10,11 @@ const VEHICLE_TYPES = ['ALL', 'HATCHBACK', 'SEDAN', 'SUV', 'LUXURY', 'ELECTRIC']
 const FUEL_TYPES = ['ALL', 'PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID', 'CNG'];
 const CITIES = ['ALL', 'Hyderabad', 'Bengaluru', 'Mumbai', 'Delhi', 'Pune'];
 
-export default function CustomerVehicleBrowse() {
+export default function CustomerVehicleBrowse({ onNavigateToReservations }) {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [reservationTargetVehicle, setReservationTargetVehicle] = useState(null);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -708,17 +710,31 @@ export default function CustomerVehicleBrowse() {
               <button
                 disabled={!availabilityData?.available}
                 onClick={() => {
-                  alert(`Stage 3 Complete! Stage 4 (Reservations) will allow booking ${selectedVehicle.make} ${selectedVehicle.model} from ${startDate} to ${endDate}.`);
+                  setReservationTargetVehicle(selectedVehicle);
+                  setIsModalOpen(false);
                 }}
                 className="btn btn-primary"
                 style={{ opacity: availabilityData?.available ? 1 : 0.5 }}
               >
-                Proceed to Book Vehicle (Stage 4)
+                Proceed to Book Vehicle
               </button>
             </div>
 
           </div>
         </div>
+      )}
+
+      {reservationTargetVehicle && (
+        <ReservationModal
+          vehicle={reservationTargetVehicle}
+          onClose={() => setReservationTargetVehicle(null)}
+          onSuccess={(resData) => {
+            alert(`Reservation #${resData.reservationNumber || resData._id} confirmed successfully!`);
+            if (onNavigateToReservations) {
+              onNavigateToReservations();
+            }
+          }}
+        />
       )}
     </div>
   );
