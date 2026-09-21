@@ -3,9 +3,11 @@ import vehicleService from '../../services/vehicle.service';
 import VehicleModal from './VehicleModal';
 import VehicleDetailsModal from './VehicleDetailsModal';
 import StatusTransitionModal from './StatusTransitionModal';
+import MaintenanceModal from '../maintenance/MaintenanceModal';
+import maintenanceService from '../../services/maintenance.service';
 import {
   Car, Plus, Search, Filter, RefreshCw, Edit2, Trash2, Eye,
-  CheckCircle, AlertTriangle, Power, ArrowUpDown
+  CheckCircle, AlertTriangle, Power, ArrowUpDown, Wrench
 } from 'lucide-react';
 
 const VEHICLE_TYPES = ['ALL', 'HATCHBACK', 'SEDAN', 'SUV', 'LUXURY', 'ELECTRIC'];
@@ -37,6 +39,8 @@ export default function VehicleList() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [transitionVehicle, setTransitionVehicle] = useState(null);
   const [isTransitionOpen, setIsTransitionOpen] = useState(false);
+  const [maintenanceVehicle, setMaintenanceVehicle] = useState(null);
+  const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(false);
 
   // Fetch vehicles
   const loadVehicles = useCallback(async () => {
@@ -82,6 +86,12 @@ export default function VehicleList() {
   // Handle State Machine Lifecycle Transition
   const handleTransitionVehicle = async (id, payload) => {
     await vehicleService.transitionStatus(id, payload);
+    await loadVehicles();
+  };
+
+  // Handle Schedule Maintenance
+  const handleScheduleMaintenance = async (payload) => {
+    await maintenanceService.create(payload);
     await loadVehicles();
   };
 
@@ -395,6 +405,16 @@ export default function VehicleList() {
                         </button>
                         <button
                           onClick={() => {
+                            setMaintenanceVehicle(v);
+                            setIsMaintenanceOpen(true);
+                          }}
+                          title="Schedule Maintenance"
+                          style={{ ...iconBtnStyle, color: '#ec4899' }}
+                        >
+                          <Wrench size={15} />
+                        </button>
+                        <button
+                          onClick={() => {
                             setVehicleToEdit(v);
                             setIsModalOpen(true);
                           }}
@@ -445,6 +465,14 @@ export default function VehicleList() {
         onClose={() => setIsTransitionOpen(false)}
         vehicle={transitionVehicle}
         onTransitionSuccess={handleTransitionVehicle}
+      />
+
+      {/* Maintenance Modal */}
+      <MaintenanceModal
+        isOpen={isMaintenanceOpen}
+        onClose={() => setIsMaintenanceOpen(false)}
+        onSave={handleScheduleMaintenance}
+        preselectedVehicle={maintenanceVehicle}
       />
     </div>
   );

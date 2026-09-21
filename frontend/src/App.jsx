@@ -5,6 +5,7 @@ import Navbar from './components/common/Navbar';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import VehicleList from './components/fleet/VehicleList';
+import MaintenanceList from './components/maintenance/MaintenanceList';
 import CustomerVehicleBrowse from './components/customer/CustomerVehicleBrowse';
 import MyReservations from './components/customer/MyReservations';
 import {
@@ -237,6 +238,12 @@ function AppContent() {
         {activeTab === 'fleet' && (
           <main className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
             <VehicleList />
+          </main>
+        )}
+
+        {activeTab === 'maintenance' && (
+          <main className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
+            <MaintenanceList />
           </main>
         )}
 

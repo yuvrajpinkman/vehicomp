@@ -17,6 +17,13 @@ try {
   reservationRoutes = null;
 }
 
+let maintenanceRoutes;
+try {
+  maintenanceRoutes = require('./routes/maintenance.routes');
+} catch (e) {
+  maintenanceRoutes = null;
+}
+
 const { notFoundHandler, errorHandler } = require('./middlewares/error.middleware');
 
 const app = express();
@@ -48,6 +55,9 @@ if (vehicleRoutes) {
 }
 if (reservationRoutes) {
   app.use('/api/reservations', reservationRoutes);
+}
+if (maintenanceRoutes) {
+  app.use('/api/maintenance', maintenanceRoutes);
 }
 
 // Error handling middlewares
