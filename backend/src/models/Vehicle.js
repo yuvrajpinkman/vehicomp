@@ -122,6 +122,38 @@ const VehicleSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    statusChangedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    statusHistory: [
+      {
+        fromStatus: {
+          type: String,
+          required: true,
+        },
+        toStatus: {
+          type: String,
+          required: true,
+        },
+        reason: {
+          type: String,
+          default: '',
+        },
+        notes: {
+          type: String,
+          default: '',
+        },
+        changedBy: {
+          type: String,
+          default: 'System',
+        },
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

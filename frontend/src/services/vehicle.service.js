@@ -25,6 +25,16 @@ export const vehicleService = {
   // Check vehicle availability for date range
   checkAvailability: (id, startDate, endDate) =>
     api.get(`/vehicles/${id}/availability`, { params: { startDate, endDate } }),
+
+  // Execute validated lifecycle transition
+  transitionStatus: (id, payload) =>
+    api.post(`/vehicles/${id}/transition`, payload),
+
+  // Retrieve lifecycle audit history
+  getHistory: (id) => api.get(`/vehicles/${id}/history`),
+
+  // Retrieve allowable state transitions map
+  getLifecycleRules: () => api.get('/vehicles/lifecycle/rules'),
 };
 
 export default vehicleService;

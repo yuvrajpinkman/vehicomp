@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import vehicleService from '../../services/vehicle.service';
 import VehicleModal from './VehicleModal';
 import VehicleDetailsModal from './VehicleDetailsModal';
+import StatusTransitionModal from './StatusTransitionModal';
 import {
   Car, Plus, Search, Filter, RefreshCw, Edit2, Trash2, Eye,
   CheckCircle, AlertTriangle, Power, ArrowUpDown
@@ -34,6 +35,8 @@ export default function VehicleList() {
   const [vehicleToEdit, setVehicleToEdit] = useState(null);
   const [detailsVehicle, setDetailsVehicle] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [transitionVehicle, setTransitionVehicle] = useState(null);
+  const [isTransitionOpen, setIsTransitionOpen] = useState(false);
 
   // Fetch vehicles
   const loadVehicles = useCallback(async () => {
@@ -76,16 +79,10 @@ export default function VehicleList() {
     await loadVehicles();
   };
 
-  // Handle Quick Status Change
-  const handleStatusChange = async (id, newStatus) => {
-    try {
-      await vehicleService.updateStatus(id, newStatus);
-      setVehicles((prev) =>
-        (Array.isArray(prev) ? prev : []).map((v) => (v._id === id ? { ...v, status: newStatus } : v))
-      );
-    } catch (err) {
-      alert(err.message || 'Failed to update vehicle status');
-    }
+  // Handle State Machine Lifecycle Transition
+  const handleTransitionVehicle = async (id, payload) => {
+    await vehicleService.transitionStatus(id, payload);
+    await loadVehicles();
   };
 
   // Handle Toggle Active
@@ -325,27 +322,30 @@ export default function VehicleList() {
                     </td>
 
                     <td style={{ padding: '1rem' }}>
-                      <select
-                        value={v.status}
-                        onChange={(e) => handleStatusChange(v._id, e.target.value)}
+                      <button
+                        onClick={() => {
+                          setTransitionVehicle(v);
+                          setIsTransitionOpen(true);
+                        }}
+                        title="Click to transition vehicle status (State Machine)"
                         style={{
                           background: sBadge.bg,
                           color: sBadge.text,
                           border: `1px solid ${sBadge.border}`,
-                          padding: '0.25rem 0.5rem',
+                          padding: '0.3rem 0.65rem',
                           borderRadius: '6px',
                           fontSize: '0.75rem',
                           fontWeight: 600,
                           cursor: 'pointer',
-                          outline: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          transition: 'all 0.15s ease',
                         }}
                       >
-                        {VEHICLE_STATUSES.filter((s) => s !== 'ALL').map((status) => (
-                          <option key={status} value={status} style={{ background: '#0f172a', color: '#fff' }}>
-                            {status}
-                          </option>
-                        ))}
-                      </select>
+                        <span>{v.status}</span>
+                        <ArrowUpDown size={12} />
+                      </button>
                     </td>
 
                     <td style={{ padding: '1rem' }}>
@@ -382,6 +382,16 @@ export default function VehicleList() {
                           style={iconBtnStyle}
                         >
                           <Eye size={15} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setTransitionVehicle(v);
+                            setIsTransitionOpen(true);
+                          }}
+                          title="Transition Status (State Machine)"
+                          style={iconBtnStyle}
+                        >
+                          <ArrowUpDown size={15} />
                         </button>
                         <button
                           onClick={() => {
@@ -423,6 +433,18 @@ export default function VehicleList() {
         isOpen={isDetailsOpen}
         onClose={() => setIsDetailsOpen(false)}
         vehicle={detailsVehicle}
+        onOpenTransition={(veh) => {
+          setTransitionVehicle(veh);
+          setIsTransitionOpen(true);
+        }}
+      />
+
+      {/* Lifecycle Transition Modal */}
+      <StatusTransitionModal
+        isOpen={isTransitionOpen}
+        onClose={() => setIsTransitionOpen(false)}
+        vehicle={transitionVehicle}
+        onTransitionSuccess={handleTransitionVehicle}
       />
     </div>
   );
