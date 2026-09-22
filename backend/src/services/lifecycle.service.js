@@ -1,10 +1,12 @@
+const mongoose = require('mongoose');
 const { Vehicle, VEHICLE_STATUSES } = require('../models/Vehicle');
+const vehicleService = require('./vehicle.service');
 
 /**
  * Strict state transition matrix for fleet vehicle lifecycle
  */
 const LIFECYCLE_TRANSITIONS = {
-  AVAILABLE: ['RESERVED', 'MAINTENANCE'],
+  AVAILABLE: ['RESERVED', 'MAINTENANCE', 'RENTED'],
   RESERVED: ['RENTED', 'AVAILABLE'],
   RENTED: ['RETURNED'],
   RETURNED: ['INSPECTION', 'DAMAGED'],
@@ -18,6 +20,7 @@ const LIFECYCLE_TRANSITIONS = {
  */
 const TRANSITION_DESCRIPTIONS = {
   'AVAILABLE->RESERVED': 'Customer created a reservation',
+  'AVAILABLE->RENTED': 'Instant rental commenced for available vehicle',
   'AVAILABLE->MAINTENANCE': 'Vehicle scheduled for routine service or inspection',
   'RESERVED->RENTED': 'Vehicle picked up and rental period commenced',
   'RESERVED->AVAILABLE': 'Reservation cancelled; vehicle returned to inventory',
@@ -71,7 +74,20 @@ class LifecycleService {
       throw error;
     }
 
-    const vehicle = await Vehicle.findOne({ _id: vehicleId, isDeleted: false });
+    let vehicle = null;
+
+    if (mongoose.connection.readyState === 1) {
+      try {
+        vehicle = await Vehicle.findOne({ _id: vehicleId, isDeleted: false });
+      } catch (err) {
+        console.warn('[LifecycleService] DB query failed, using vehicleService fallback:', err.message);
+      }
+    }
+
+    if (!vehicle) {
+      vehicle = await vehicleService.getVehicleById(vehicleId);
+    }
+
     if (!vehicle) {
       const error = new Error('Vehicle not found');
       error.statusCode = 404;
@@ -117,7 +133,16 @@ class LifecycleService {
     }
     vehicle.statusHistory.push(historyEntry);
 
-    await vehicle.save();
+    if (mongoose.connection.readyState === 1 && typeof vehicle.save === 'function') {
+      await vehicle.save();
+    } else {
+      // Also update in vehicleService's in-memory store if applicable
+      await vehicleService.updateVehicle(vehicleId, {
+        status: targetStatus,
+        statusChangedAt: vehicle.statusChangedAt,
+        statusHistory: vehicle.statusHistory,
+      });
+    }
 
     return {
       vehicle,
@@ -130,9 +155,21 @@ class LifecycleService {
    * Get lifecycle history log for a vehicle
    */
   async getVehicleHistory(vehicleId) {
-    const vehicle = await Vehicle.findOne({ _id: vehicleId, isDeleted: false }).select(
-      'registrationNumber make model status statusChangedAt statusHistory'
-    );
+    let vehicle = null;
+
+    if (mongoose.connection.readyState === 1) {
+      try {
+        vehicle = await Vehicle.findOne({ _id: vehicleId, isDeleted: false }).select(
+          'registrationNumber make model status statusChangedAt statusHistory'
+        );
+      } catch (err) {
+        // Fallback
+      }
+    }
+
+    if (!vehicle) {
+      vehicle = await vehicleService.getVehicleById(vehicleId);
+    }
 
     if (!vehicle) {
       const error = new Error('Vehicle not found');
@@ -141,14 +178,14 @@ class LifecycleService {
     }
 
     return {
-      vehicleId: vehicle._id,
+      vehicleId: vehicle._id || vehicleId,
       registrationNumber: vehicle.registrationNumber,
       make: vehicle.make,
       model: vehicle.model,
       currentStatus: vehicle.status,
       statusChangedAt: vehicle.statusChangedAt,
       allowedNextTransitions: this.getAllowedTransitions(vehicle.status),
-      history: (vehicle.statusHistory || []).reverse(), // Newest first
+      history: (vehicle.statusHistory || []).slice().reverse(), // Newest first
     };
   }
 }
