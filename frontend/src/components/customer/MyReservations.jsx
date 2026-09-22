@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { reservationService } from '../../services/reservation.service';
+import { rentalService } from '../../services/rental.service';
 
-export default function MyReservations({ onBrowseVehicles }) {
+export default function MyReservations({ onBrowseVehicles, onNavigateRentals }) {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,6 +28,29 @@ export default function MyReservations({ onBrowseVehicles }) {
   useEffect(() => {
     fetchReservations();
   }, []);
+
+  const handleStartRental = async (res) => {
+    const vehId = res.vehicle?._id || res.vehicle?.id || res.vehicle;
+    if (!vehId) return alert('Invalid vehicle for rental');
+
+    try {
+      await rentalService.startRental({
+        reservationId: res._id || res.id,
+        vehicleId: vehId,
+        expectedReturnDate: res.endDate,
+        initialOdometer: res.vehicle?.mileage || 15000,
+        notes: `Pickup from reservation #${res.reservationNumber}`,
+      });
+      alert('Rental started successfully! Vehicle status updated to RENTED.');
+      if (onNavigateRentals) {
+        onNavigateRentals();
+      } else {
+        fetchReservations();
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || 'Failed to start rental');
+    }
+  };
 
   const handleCancelSubmit = async (e) => {
     e.preventDefault();
@@ -230,22 +254,39 @@ export default function MyReservations({ onBrowseVehicles }) {
 
                 {/* Footer action */}
                 {res.status === 'CONFIRMED' && (
-                  <button
-                    onClick={() => setCancelModalRes(res)}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      border: '1px solid #ef4444',
-                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                      color: '#fca5a5',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    Cancel Booking
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={() => handleStartRental(res)}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        color: '#ffffff',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                      }}
+                    >
+                      🔑 Pickup & Start Rental
+                    </button>
+                    <button
+                      onClick={() => setCancelModalRes(res)}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        border: '1px solid #ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        color: '#fca5a5',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 )}
               </div>
             );

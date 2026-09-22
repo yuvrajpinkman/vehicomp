@@ -88,6 +88,22 @@ function Navbar({ activeTab, setActiveTab, health }) {
             📅 My Reservations
           </button>
           <button
+            onClick={() => setActiveTab('rentals')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: activeTab === 'rentals' ? 'var(--primary, #6366f1)' : 'transparent',
+              color: activeTab === 'rentals' ? '#fff' : 'var(--text-muted)',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            🔑 My Rentals
+          </button>
+          <button
             onClick={() => setActiveTab('fleet')}
             style={{
               padding: '0.5rem 1rem',
