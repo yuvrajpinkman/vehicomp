@@ -28,9 +28,9 @@ function Navbar({ activeTab, setActiveTab, health }) {
               Vehicomp
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>
-              {activeTab === 'fleet'
+              {activeTab === 'fleet' || activeTab === 'maintenance' || activeTab === 'dashboard'
                 ? 'Fleet & Administration Management (Member 2)'
-                : activeTab === 'auth'
+                : activeTab === 'auth' || activeTab === 'browse' || activeTab === 'reservations' || activeTab === 'rentals'
                 ? 'Customer & Rental Management (Member 1)'
                 : 'System Diagnostics & Infrastructure'}
             </p>
@@ -102,6 +102,22 @@ function Navbar({ activeTab, setActiveTab, health }) {
             }}
           >
             🔑 My Rentals
+          </button>
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: activeTab === 'dashboard' ? 'var(--primary, #6366f1)' : 'transparent',
+              color: activeTab === 'dashboard' ? '#fff' : 'var(--text-muted)',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            📊 Dashboard
           </button>
           <button
             onClick={() => setActiveTab('fleet')}

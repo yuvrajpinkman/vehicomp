@@ -31,6 +31,13 @@ try {
   rentalRoutes = null;
 }
 
+let dashboardRoutes;
+try {
+  dashboardRoutes = require('./routes/dashboard.routes');
+} catch (e) {
+  dashboardRoutes = null;
+}
+
 const { notFoundHandler, errorHandler } = require('./middlewares/error.middleware');
 
 const app = express();
@@ -68,6 +75,9 @@ if (maintenanceRoutes) {
 }
 if (rentalRoutes) {
   app.use('/api/rentals', rentalRoutes);
+}
+if (dashboardRoutes) {
+  app.use('/api/dashboard', dashboardRoutes);
 }
 
 // Error handling middlewares
