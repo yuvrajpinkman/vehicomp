@@ -9,6 +9,7 @@ import MaintenanceList from './components/maintenance/MaintenanceList';
 import CustomerVehicleBrowse from './components/customer/CustomerVehicleBrowse';
 import MyReservations from './components/customer/MyReservations';
 import MyRentals from './components/customer/MyRentals';
+import MyInvoices from './components/customer/MyInvoices';
 import FleetDashboard from './components/dashboard/FleetDashboard';
 import {
   Car,
@@ -240,6 +241,12 @@ function AppContent() {
         {activeTab === 'rentals' && (
           <div style={{ marginBottom: '2rem' }}>
             <MyRentals onBrowseVehicles={() => setActiveTab('browse')} />
+          </div>
+        )}
+
+        {activeTab === 'invoices' && (
+          <div style={{ marginBottom: '2rem' }}>
+            <MyInvoices onBrowseVehicles={() => setActiveTab('browse')} />
           </div>
         )}
 

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { rentalService } from '../../services/rental.service';
+import { generateInvoice } from '../../services/invoice.service';
+import InvoiceModal from './InvoiceModal';
 
 export default function MyRentals({ onBrowseVehicles }) {
   const [rentals, setRentals] = useState([]);
@@ -10,6 +12,7 @@ export default function MyRentals({ onBrowseVehicles }) {
   const [returnOdometer, setReturnOdometer] = useState('');
   const [returnNotes, setReturnNotes] = useState('');
   const [returning, setReturning] = useState(false);
+  const [invoiceModalData, setInvoiceModalData] = useState(null);
 
   const fetchRentals = async () => {
     setLoading(true);
@@ -337,8 +340,33 @@ export default function MyRentals({ onBrowseVehicles }) {
                 )}
 
                 {/* Actions */}
-                {['ACTIVE', 'OVERDUE'].includes(rental.status) && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const invRes = await generateInvoice(rental._id || rental.id || rental.rentalNumber);
+                        setInvoiceModalData(invRes.data || invRes);
+                      } catch (err) {
+                        alert(err.message || 'Failed to generate invoice');
+                      }
+                    }}
+                    style={{
+                      padding: '10px 16px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(99, 102, 241, 0.4)',
+                      background: 'rgba(99, 102, 241, 0.15)',
+                      color: '#c7d2fe',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    🧾 Generate / View Invoice
+                  </button>
+
+                  {['ACTIVE', 'OVERDUE'].includes(rental.status) && (
                     <button
                       onClick={() => {
                         setReturnModalRental(rental);
@@ -357,8 +385,8 @@ export default function MyRentals({ onBrowseVehicles }) {
                     >
                       🔄 Return Vehicle & Complete Rental
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             );
           })}
@@ -485,6 +513,14 @@ export default function MyRentals({ onBrowseVehicles }) {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Invoice Modal */}
+      {invoiceModalData && (
+        <InvoiceModal
+          invoice={invoiceModalData}
+          onClose={() => setInvoiceModalData(null)}
+        />
       )}
     </div>
   );

@@ -38,6 +38,20 @@ try {
   dashboardRoutes = null;
 }
 
+let invoiceRoutes;
+try {
+  invoiceRoutes = require('./routes/invoice.routes');
+} catch (e) {
+  invoiceRoutes = null;
+}
+
+let pricingRoutes;
+try {
+  pricingRoutes = require('./routes/pricing.routes');
+} catch (e) {
+  pricingRoutes = null;
+}
+
 const { notFoundHandler, errorHandler } = require('./middlewares/error.middleware');
 
 const app = express();
@@ -78,6 +92,12 @@ if (rentalRoutes) {
 }
 if (dashboardRoutes) {
   app.use('/api/dashboard', dashboardRoutes);
+}
+if (invoiceRoutes) {
+  app.use('/api/invoices', invoiceRoutes);
+}
+if (pricingRoutes) {
+  app.use('/api/pricing', pricingRoutes);
 }
 
 // Error handling middlewares
