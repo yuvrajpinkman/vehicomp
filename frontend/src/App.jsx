@@ -10,6 +10,7 @@ import CustomerVehicleBrowse from './components/customer/CustomerVehicleBrowse';
 import MyReservations from './components/customer/MyReservations';
 import MyRentals from './components/customer/MyRentals';
 import MyInvoices from './components/customer/MyInvoices';
+import CustomerDashboard from './components/customer/CustomerDashboard';
 import FleetDashboard from './components/dashboard/FleetDashboard';
 import VehicleRecommendations from './components/recommendations/VehicleRecommendations';
 import FleetLocationMap from './components/location/FleetLocationMap';
@@ -225,6 +226,12 @@ function AppContent() {
 
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'customer-dashboard' && (
+          <div style={{ marginBottom: '2rem' }}>
+            <CustomerDashboard onBrowseVehicles={() => setActiveTab('browse')} />
           </div>
         )}
 
