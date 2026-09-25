@@ -12,6 +12,7 @@ import MyRentals from './components/customer/MyRentals';
 import MyInvoices from './components/customer/MyInvoices';
 import FleetDashboard from './components/dashboard/FleetDashboard';
 import VehicleRecommendations from './components/recommendations/VehicleRecommendations';
+import FleetLocationMap from './components/location/FleetLocationMap';
 import {
   Car,
   Server,
@@ -280,6 +281,12 @@ function AppContent() {
         {activeTab === 'maintenance' && (
           <main className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
             <MaintenanceList />
+          </main>
+        )}
+
+        {activeTab === 'location' && (
+          <main className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
+            <FleetLocationMap />
           </main>
         )}
 

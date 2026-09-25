@@ -28,7 +28,7 @@ function Navbar({ activeTab, setActiveTab, health }) {
               Vehicomp
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>
-              {activeTab === 'fleet' || activeTab === 'maintenance' || activeTab === 'dashboard' || activeTab === 'recommendations'
+              {activeTab === 'fleet' || activeTab === 'maintenance' || activeTab === 'dashboard' || activeTab === 'recommendations' || activeTab === 'location'
                 ? 'Fleet & Administration Management (Member 2)'
                 : activeTab === 'auth' || activeTab === 'browse' || activeTab === 'reservations' || activeTab === 'rentals' || activeTab === 'invoices'
                 ? 'Customer & Rental Management (Member 1)'
@@ -182,6 +182,22 @@ function Navbar({ activeTab, setActiveTab, health }) {
             }}
           >
             🛠️ Maintenance
+          </button>
+          <button
+            onClick={() => setActiveTab('location')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: activeTab === 'location' ? 'var(--primary, #6366f1)' : 'transparent',
+              color: activeTab === 'location' ? '#fff' : 'var(--text-muted)',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            🗺️ Live Fleet Map
           </button>
           <button
             onClick={() => setActiveTab('diagnostics')}
