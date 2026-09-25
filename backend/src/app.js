@@ -66,6 +66,20 @@ try {
   locationRoutes = null;
 }
 
+let ratingRoutes;
+try {
+  ratingRoutes = require('./routes/rating.routes');
+} catch (e) {
+  ratingRoutes = null;
+}
+
+let customerRoutes;
+try {
+  customerRoutes = require('./routes/customer.routes');
+} catch (e) {
+  customerRoutes = null;
+}
+
 const { notFoundHandler, errorHandler } = require('./middlewares/error.middleware');
 
 const app = express();
@@ -118,6 +132,12 @@ if (recommendationRoutes) {
 }
 if (locationRoutes) {
   app.use('/api/location', locationRoutes);
+}
+if (ratingRoutes) {
+  app.use('/api/ratings', ratingRoutes);
+}
+if (customerRoutes) {
+  app.use('/api/customer', customerRoutes);
 }
 
 // Error handling middlewares

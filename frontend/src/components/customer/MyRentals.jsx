@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { rentalService } from '../../services/rental.service';
 import { generateInvoice } from '../../services/invoice.service';
 import InvoiceModal from './InvoiceModal';
+import RatingModal from './RatingModal';
 
 export default function MyRentals({ onBrowseVehicles }) {
   const [rentals, setRentals] = useState([]);
@@ -13,6 +14,7 @@ export default function MyRentals({ onBrowseVehicles }) {
   const [returnNotes, setReturnNotes] = useState('');
   const [returning, setReturning] = useState(false);
   const [invoiceModalData, setInvoiceModalData] = useState(null);
+  const [ratingModalRental, setRatingModalRental] = useState(null);
 
   const fetchRentals = async () => {
     setLoading(true);
@@ -366,6 +368,24 @@ export default function MyRentals({ onBrowseVehicles }) {
                     🧾 Generate / View Invoice
                   </button>
 
+                  <button
+                    onClick={() => setRatingModalRental(rental)}
+                    style={{
+                      padding: '10px 16px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(245, 158, 11, 0.4)',
+                      background: 'rgba(245, 158, 11, 0.15)',
+                      color: '#fbbf24',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    ⭐ Rate Vehicle
+                  </button>
+
                   {['ACTIVE', 'OVERDUE'].includes(rental.status) && (
                     <button
                       onClick={() => {
@@ -520,6 +540,19 @@ export default function MyRentals({ onBrowseVehicles }) {
         <InvoiceModal
           invoice={invoiceModalData}
           onClose={() => setInvoiceModalData(null)}
+        />
+      )}
+
+      {/* Rating Modal */}
+      {ratingModalRental && (
+        <RatingModal
+          rental={ratingModalRental}
+          vehicle={ratingModalRental.vehicle}
+          onClose={() => setRatingModalRental(null)}
+          onSuccess={() => {
+            setRatingModalRental(null);
+            fetchRentals();
+          }}
         />
       )}
     </div>

@@ -30,7 +30,7 @@ function Navbar({ activeTab, setActiveTab, health }) {
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>
               {activeTab === 'fleet' || activeTab === 'maintenance' || activeTab === 'dashboard' || activeTab === 'recommendations' || activeTab === 'location'
                 ? 'Fleet & Administration Management (Member 2)'
-                : activeTab === 'auth' || activeTab === 'browse' || activeTab === 'reservations' || activeTab === 'rentals' || activeTab === 'invoices'
+                : activeTab === 'auth' || activeTab === 'browse' || activeTab === 'reservations' || activeTab === 'rentals' || activeTab === 'invoices' || activeTab === 'customer-dashboard'
                 ? 'Customer & Rental Management (Member 1)'
                 : 'System Diagnostics & Infrastructure'}
             </p>
@@ -54,6 +54,22 @@ function Navbar({ activeTab, setActiveTab, health }) {
             }}
           >
             🔐 Auth & Account
+          </button>
+          <button
+            onClick={() => setActiveTab('customer-dashboard')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: activeTab === 'customer-dashboard' ? 'var(--primary, #6366f1)' : 'transparent',
+              color: activeTab === 'customer-dashboard' ? '#fff' : 'var(--text-muted)',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            👤 Customer Hub
           </button>
           <button
             onClick={() => setActiveTab('browse')}
