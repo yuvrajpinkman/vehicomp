@@ -10,6 +10,7 @@ router.get('/meta', (req, res, next) => maintenanceController.getMaintenanceMeta
 router.get('/vehicle/:vehicleId', (req, res, next) => maintenanceController.getVehicleMaintenanceHistory(req, res, next));
 router.get('/:id', (req, res, next) => maintenanceController.getMaintenanceById(req, res, next));
 router.put('/:id', (req, res, next) => maintenanceController.updateMaintenance(req, res, next));
+router.patch('/:id/status', (req, res, next) => maintenanceController.updateMaintenance(req, res, next));
 router.delete('/:id', (req, res, next) => maintenanceController.deleteMaintenance(req, res, next));
 
 module.exports = router;

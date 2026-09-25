@@ -10,7 +10,16 @@ const notFoundHandler = (req, res, next) => {
 const errorHandler = (err, req, res, next) => {
   console.error(`[Error] ${err.message}`, err.stack);
 
-  const statusCode = err.statusCode || 500;
+  let statusCode = err.statusCode || 500;
+
+  if (err.name === 'ValidationError' || err.name === 'CastError') {
+    statusCode = 400;
+  } else if (err.code === 11000) {
+    statusCode = 409;
+  } else if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+    statusCode = 401;
+  }
+
   res.status(statusCode).json({
     success: false,
     message: err.message || 'Internal Server Error',
