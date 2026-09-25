@@ -11,6 +11,7 @@ import MyReservations from './components/customer/MyReservations';
 import MyRentals from './components/customer/MyRentals';
 import MyInvoices from './components/customer/MyInvoices';
 import FleetDashboard from './components/dashboard/FleetDashboard';
+import VehicleRecommendations from './components/recommendations/VehicleRecommendations';
 import {
   Car,
   Server,
@@ -248,6 +249,17 @@ function AppContent() {
           <div style={{ marginBottom: '2rem' }}>
             <MyInvoices onBrowseVehicles={() => setActiveTab('browse')} />
           </div>
+        )}
+
+        {activeTab === 'recommendations' && (
+          <main className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
+            <VehicleRecommendations
+              onNavigateToBrowse={() => setActiveTab('browse')}
+              onSelectVehicle={(vehicle) => {
+                setActiveTab('browse');
+              }}
+            />
+          </main>
         )}
 
         {activeTab === 'dashboard' && (

@@ -52,6 +52,13 @@ try {
   pricingRoutes = null;
 }
 
+let recommendationRoutes;
+try {
+  recommendationRoutes = require('./routes/recommendation.routes');
+} catch (e) {
+  recommendationRoutes = null;
+}
+
 const { notFoundHandler, errorHandler } = require('./middlewares/error.middleware');
 
 const app = express();
@@ -98,6 +105,9 @@ if (invoiceRoutes) {
 }
 if (pricingRoutes) {
   app.use('/api/pricing', pricingRoutes);
+}
+if (recommendationRoutes) {
+  app.use('/api/recommendations', recommendationRoutes);
 }
 
 // Error handling middlewares

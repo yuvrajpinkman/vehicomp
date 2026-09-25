@@ -70,6 +70,17 @@ const VehicleSchema = new mongoose.Schema(
       default: 'EXCELLENT',
       uppercase: true,
     },
+    rating: {
+      type: Number,
+      default: 4.5,
+      min: [1.0, 'Rating cannot be less than 1.0'],
+      max: [5.0, 'Rating cannot exceed 5.0'],
+    },
+    totalRatings: {
+      type: Number,
+      default: 1,
+      min: [0, 'Total ratings cannot be negative'],
+    },
     status: {
       type: String,
       enum: {
