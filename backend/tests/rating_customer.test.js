@@ -22,13 +22,13 @@ describe('Stage 7 — Rating & Customer Dashboard', () => {
       model: 'Model Y',
       year: 2024,
       registrationNumber: `REG-ST7-${Date.now()}`,
-      category: 'ELECTRIC',
+      vehicleType: 'ELECTRIC',
       dailyRate: 120,
       pricePerDay: 120,
       fuelType: 'ELECTRIC',
       transmission: 'AUTOMATIC',
       seatingCapacity: 5,
-      location: 'City Center Hub',
+      location: { city: 'City Center Hub' },
       status: 'AVAILABLE',
       rating: 4.5,
       totalRatings: 1,
@@ -47,8 +47,8 @@ describe('Stage 7 — Rating & Customer Dashboard', () => {
 
   describe('1. Rating Service & API', () => {
     it('should submit a valid vehicle rating (POST /api/ratings)', async () => {
-      const vehicleId = testVehicle._id || testVehicle.id;
-      const rentalId = testRental._id || testRental.id;
+      const vehicleId = (testVehicle._id || testVehicle.id).toString();
+      const rentalId = (testRental._id || testRental.id).toString();
 
       const res = await request(app)
         .post('/api/ratings')
@@ -111,7 +111,7 @@ describe('Stage 7 — Rating & Customer Dashboard', () => {
     });
 
     it('should fetch ratings for a vehicle (GET /api/ratings/vehicle/:vehicleId)', async () => {
-      const vehicleId = testVehicle._id || testVehicle.id;
+      const vehicleId = (testVehicle._id || testVehicle.id).toString();
 
       const res = await request(app).get(`/api/ratings/vehicle/${vehicleId}`);
 

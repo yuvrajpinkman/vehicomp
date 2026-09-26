@@ -22,13 +22,13 @@ describe('Stage 6 — Pricing & Invoice Management', () => {
       model: 'i4 Electric',
       year: 2024,
       registrationNumber: `REG-${Date.now()}`,
-      category: 'ELECTRIC',
+      vehicleType: 'ELECTRIC',
       dailyRate: 150,
       pricePerDay: 150,
       fuelType: 'ELECTRIC',
       transmission: 'AUTOMATIC',
       seatingCapacity: 5,
-      location: 'Downtown Hub',
+      location: { city: 'Downtown Hub' },
       status: 'AVAILABLE',
     });
 

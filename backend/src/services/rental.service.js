@@ -102,11 +102,15 @@ class RentalService {
 
     const rentalNumber = `RNT-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
+    const validUserId = (userId && mongoose.Types.ObjectId.isValid(userId.toString()))
+      ? userId.toString()
+      : new mongoose.Types.ObjectId().toString();
+
     const rentalPayload = {
       _id: new mongoose.Types.ObjectId().toString(),
       rentalNumber,
       reservation: reservationId || null,
-      user: userId,
+      user: validUserId,
       vehicle: vehicle._id ? vehicle._id.toString() : vehicleId,
       startDate,
       expectedReturnDate: calculatedExpectedReturn,

@@ -114,6 +114,18 @@ class VehicleService {
    * Create a new vehicle in the fleet
    */
   async createVehicle(data) {
+    if (!data.vehicleType && data.category) {
+      data.vehicleType = data.category;
+    }
+    if (!data.vehicleType) {
+      data.vehicleType = 'SEDAN';
+    }
+    if (typeof data.location === 'string') {
+      data.location = { city: data.location };
+    } else if (!data.location || !data.location.city) {
+      data.location = { city: data.location?.city || 'Pune', address: data.location?.address || '' };
+    }
+
     if (this.isDbConnected()) {
       const existing = await Vehicle.findOne({
         registrationNumber: data.registrationNumber.toUpperCase().trim(),
