@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Activity,
   Check,
+  X,
 } from 'lucide-react';
 
 const STATUS_FILTERS = ['ALL', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
@@ -40,6 +41,11 @@ export default function MaintenanceList() {
   const [detailsRecord, setDetailsRecord] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
+  // Quick Complete Modal State
+  const [completingRecord, setCompletingRecord] = useState(null);
+  const [quickActualCost, setQuickActualCost] = useState('');
+  const [completingLoading, setCompletingLoading] = useState(false);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -54,7 +60,8 @@ export default function MaintenanceList() {
         maintenanceService.getStats().catch(() => ({ data: { data: null } })),
       ]);
 
-      const list = listRes.data?.data || listRes.data || [];
+      const raw = listRes.data?.data || listRes.data || [];
+      const list = Array.isArray(raw) ? raw : (raw.maintenance || raw.records || []);
       setRecords(Array.isArray(list) ? list : []);
 
       const s = statsRes.data?.data || statsRes.data || null;
@@ -86,17 +93,17 @@ export default function MaintenanceList() {
     try {
       await maintenanceService.update(id, {
         status: 'COMPLETED',
-        actualCost: Number(actualCost),
+        actualCost: Number(actualCost) || 0,
       });
       await loadData();
     } catch (err) {
-      alert(err.response?.data?.message || err.message || 'Failed to complete maintenance');
+      alert(err.response?.data?.message || err.message || 'Failed to complete maintenance work order');
     }
   };
 
   // Handle Delete
   const handleDelete = async (id, mNum) => {
-    if (!window.confirm(`Are you sure you want to remove work order ${mNum}?`)) return;
+    if (!window.confirm(`Are you sure you want to remove work order ${mNum || 'this record'}?`)) return;
     try {
       await maintenanceService.delete(id);
       await loadData();
@@ -326,7 +333,11 @@ export default function MaintenanceList() {
               </tr>
             ) : (
               recordList.map((m) => {
-                const veh = m.vehicle || {};
+                const veh = typeof m.vehicle === 'object' && m.vehicle !== null ? m.vehicle : {};
+                const makeModel = veh.make && veh.model ? `${veh.make} ${veh.model}` : (typeof m.vehicle === 'string' ? `Vehicle (${m.vehicle.slice(-6)})` : 'Fleet Vehicle');
+                const regNum = veh.registrationNumber || (typeof m.vehicle === 'string' ? m.vehicle : 'N/A');
+                const vehStatus = veh.status || 'MAINTENANCE';
+
                 const pBadge = priorityBadge(m.priority);
                 const sBadge = statusBadge(m.status);
 
@@ -349,10 +360,10 @@ export default function MaintenanceList() {
 
                     <td style={{ padding: '1rem' }}>
                       <div style={{ fontWeight: 600, color: '#f8fafc' }}>
-                        {veh.make} {veh.model}
+                        {makeModel}
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        Reg: <code style={{ color: '#fff' }}>{veh.registrationNumber}</code> • {veh.status}
+                        Reg: <code style={{ color: '#fff' }}>{regNum}</code> • {vehStatus}
                       </div>
                     </td>
 
@@ -421,10 +432,8 @@ export default function MaintenanceList() {
                         {m.status !== 'COMPLETED' && (
                           <button
                             onClick={() => {
-                              const cost = prompt(`Enter actual final cost (₹) for ${m.maintenanceNumber}:`, m.estimatedCost);
-                              if (cost !== null) {
-                                handleQuickComplete(m._id, cost);
-                              }
+                              setCompletingRecord(m);
+                              setQuickActualCost(m.actualCost || m.estimatedCost || '');
                             }}
                             title="Quick Complete & Release Vehicle"
                             style={{ ...iconBtnStyle, color: '#34d399', borderColor: 'rgba(16, 185, 129, 0.3)' }}
@@ -468,6 +477,119 @@ export default function MaintenanceList() {
           </tbody>
         </table>
       </div>
+
+      {/* Quick Complete Confirmation Modal */}
+      {completingRecord && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '1rem',
+        }}>
+          <div className="glass-panel" style={{
+            maxWidth: '480px',
+            width: '100%',
+            padding: '1.75rem',
+            borderRadius: '16px',
+            border: '1px solid rgba(16, 185, 129, 0.35)',
+            background: '#0f172a',
+            color: '#f8fafc',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <div style={{ background: 'rgba(16, 185, 129, 0.15)', padding: '0.5rem', borderRadius: '10px' }}>
+                  <CheckCircle size={22} color="#34d399" />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>
+                    Complete Work Order
+                  </h3>
+                  <span style={{ fontSize: '0.8rem', color: '#93c5fd', fontFamily: 'monospace' }}>
+                    {completingRecord.maintenanceNumber}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setCompletingRecord(null)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+              Marking this service job as <strong style={{ color: '#34d399' }}>COMPLETED</strong> will automatically release vehicle{' '}
+              <strong style={{ color: '#fff' }}>
+                {typeof completingRecord.vehicle === 'object' && completingRecord.vehicle !== null
+                  ? `${completingRecord.vehicle.make} ${completingRecord.vehicle.model}`
+                  : 'Fleet Vehicle'}
+              </strong>{' '}
+              back to <span style={{ color: '#34d399', fontWeight: 600 }}>AVAILABLE</span> status in the fleet inventory.
+            </p>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem', fontWeight: 500 }}>
+                Actual Final Repair Cost (₹)
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="50"
+                placeholder={`Estimated: ₹${completingRecord.estimatedCost || 0}`}
+                value={quickActualCost}
+                onChange={(e) => setQuickActualCost(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.65rem 0.85rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '8px',
+                  color: '#f8fafc',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+                autoFocus
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => setCompletingRecord(null)}
+                className="btn"
+                style={{ background: 'rgba(255,255,255,0.06)', color: '#cbd5e1' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={completingLoading}
+                onClick={async () => {
+                  setCompletingLoading(true);
+                  try {
+                    await handleQuickComplete(completingRecord._id, quickActualCost);
+                    setCompletingRecord(null);
+                  } finally {
+                    setCompletingLoading(false);
+                  }
+                }}
+                className="btn btn-primary"
+                style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                {completingLoading && <RefreshCw size={16} className="spin" />}
+                {completingLoading ? 'Releasing...' : 'Mark Completed & Release'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add / Edit Modal */}
       <MaintenanceModal

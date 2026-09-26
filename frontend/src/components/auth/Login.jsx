@@ -32,11 +32,12 @@ function Login({ onSwitchToRegister }) {
   };
 
   return (
-    <div className="auth-card glass-panel" style={{ maxWidth: '420px', margin: '0 auto', padding: '2.5rem 2rem' }}>
+    <div className="auth-card glass-panel" style={{ maxWidth: '440px', margin: '2rem auto', padding: '2.5rem 2rem' }}>
+      
       <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
         <div style={{
-          width: '52px',
-          height: '52px',
+          width: '56px',
+          height: '56px',
           borderRadius: '50%',
           background: 'rgba(99, 102, 241, 0.15)',
           border: '1px solid rgba(99, 102, 241, 0.3)',
@@ -45,11 +46,13 @@ function Login({ onSwitchToRegister }) {
           justifyContent: 'center',
           margin: '0 auto 1rem auto'
         }}>
-          <LogIn color="var(--primary, #6366f1)" size={26} />
+          <LogIn color="#6366f1" size={28} />
         </div>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.25rem' }}>Customer Login</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-          Access your account & rental bookings
+        <h2 style={{ fontSize: '1.6rem', fontWeight: '800', marginBottom: '0.25rem', color: '#f8fafc' }}>
+          Sign In to Vehicomp
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+          Enter your credentials to access your account dashboard
         </p>
       </div>
 
@@ -66,7 +69,7 @@ function Login({ onSwitchToRegister }) {
           fontSize: '0.875rem',
           marginBottom: '1.25rem'
         }}>
-          <AlertCircle size={18} style={{ shrink: 0 }} />
+          <AlertCircle size={18} style={{ flexShrink: 0 }} />
           <span>{authError}</span>
         </div>
       )}
@@ -81,7 +84,7 @@ function Login({ onSwitchToRegister }) {
             <input
               type="email"
               name="email"
-              placeholder="customer@example.com"
+              placeholder="user@example.com"
               value={formData.email}
               onChange={handleChange}
               required
@@ -168,7 +171,7 @@ function Login({ onSwitchToRegister }) {
             padding: 0
           }}
         >
-          Register here
+          Sign Up here
         </button>
       </div>
     </div>
