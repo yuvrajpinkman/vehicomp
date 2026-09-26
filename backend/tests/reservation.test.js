@@ -3,15 +3,30 @@ const request = require('supertest');
 const { signToken } = require('../src/utils/jwt');
 const app = require('../src/app');
 
+const { Vehicle } = require('../src/models/Vehicle');
+
 describe('Reservation & Double-Booking Prevention API (/api/reservations)', () => {
   const mockUserId = '65f1a2b3c4d5e6f7a8b9c099';
-  const targetVehicleId = '65f1a2b3c4d5e6f7a8b9c001'; // Creta in in-memory / seed store
+  let targetVehicleId;
   let authHeader;
   let createdReservationId;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     const token = signToken({ id: mockUserId, email: 'customer@example.com', role: 'CUSTOMER' });
     authHeader = `Bearer ${token}`;
+
+    const vehicle = await Vehicle.create({
+      registrationNumber: `RES-VEH-${Date.now()}`,
+      make: 'Hyundai',
+      model: 'Creta',
+      year: 2023,
+      vehicleType: 'SUV',
+      fuelType: 'PETROL',
+      pricePerDay: 2000,
+      location: { city: 'Mumbai', address: 'Bandra' },
+      status: 'AVAILABLE',
+    });
+    targetVehicleId = vehicle._id.toString();
   });
 
   describe('POST /api/reservations - Date Validation', () => {

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Rating = require('../models/Rating');
-const Vehicle = require('../models/Vehicle');
+const { Vehicle } = require('../models/Vehicle');
 const vehicleService = require('./vehicle.service');
 const rentalService = require('./rental.service');
 
@@ -53,15 +53,24 @@ class RatingService {
     const isDbConnected = mongoose.connection.readyState === 1;
 
     if (isDbConnected) {
-      ratingDoc = await Rating.create({
-        user: userId,
-        vehicle: vehicleId,
-        rental: rentalId || null,
-        score: numScore,
-        comment: comment || '',
-      });
-      await ratingDoc.populate('user', 'name email');
-      ratingDoc = ratingDoc.toObject();
+      try {
+        ratingDoc = await Rating.create({
+          user: userId,
+          vehicle: vehicleId,
+          rental: rentalId || null,
+          score: numScore,
+          comment: comment || '',
+        });
+        await ratingDoc.populate('user', 'name email');
+        ratingDoc = ratingDoc.toObject();
+      } catch (err) {
+        if (err.code === 11000) {
+          const error = new Error('You have already submitted a rating for this rental');
+          error.statusCode = 400;
+          throw error;
+        }
+        throw err;
+      }
     } else {
       ratingDoc = {
         _id: `RATING-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
@@ -139,7 +148,7 @@ class RatingService {
           : 0;
 
       return {
-        vehicleId,
+        vehicleId: vehicleId ? vehicleId.toString() : null,
         averageRating,
         totalRatings,
         ratings,

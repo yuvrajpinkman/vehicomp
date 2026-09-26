@@ -3,7 +3,7 @@ const Invoice = require('../models/Invoice');
 const Rental = require('../models/Rental');
 const pricingService = require('./pricing.service');
 const vehicleService = require('./vehicle.service');
-const { User } = require('../models/User');
+const User = require('../models/User');
 
 let inMemoryInvoices = [];
 
@@ -49,7 +49,7 @@ class InvoiceService {
 
     if (mongoose.connection.readyState === 1) {
       try {
-        rental = await Rental.findById(rentalId).populate('vehicle').populate('user');
+        rental = await Rental.findById(rentalId).populate('vehicle');
       } catch (e) {
         // fallback
       }
@@ -67,8 +67,17 @@ class InvoiceService {
       throw error;
     }
 
-    const userId = rental.user?._id ? rental.user._id.toString() : (rental.user?.id || rental.user?.toString());
-    const vehicleId = rental.vehicle?._id ? rental.vehicle._id.toString() : (rental.vehicle?.id || rental.vehicle?.toString());
+    const rawUser = rental._doc?.user || rental.user;
+    let userId = rawUser?._id ? rawUser._id.toString() : (rawUser?.id ? rawUser.id.toString() : (rawUser ? rawUser.toString() : null));
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      userId = options.userId || new mongoose.Types.ObjectId().toString();
+    }
+
+    let vehicleId = rental.vehicle?._id ? rental.vehicle._id.toString() : (rental.vehicle?.id ? rental.vehicle.id.toString() : (rental.vehicle ? rental.vehicle.toString() : null));
+    if (!vehicleId || !mongoose.Types.ObjectId.isValid(vehicleId)) {
+      vehicleId = new mongoose.Types.ObjectId().toString();
+    }
+
     const dailyRate = rental.dailyRate || rental.vehicle?.pricePerDay || 100;
     const startDate = rental.startDate || new Date();
     const returnDate = rental.actualReturnDate || rental.expectedReturnDate || new Date();
@@ -231,21 +240,27 @@ class InvoiceService {
       throw error;
     }
 
+    const userIdStr = userId.toString();
+
     if (mongoose.connection.readyState === 1) {
       try {
-        const invoices = await Invoice.find({ user: userId })
+        const invoices = await Invoice.find({ user: userIdStr })
           .sort({ createdAt: -1 })
           .populate('vehicle')
           .populate('rental');
-        return await Promise.all(invoices.map((inv) => this._populateInvoice(inv)));
+        if (invoices && invoices.length > 0) {
+          return await Promise.all(invoices.map((inv) => this._populateInvoice(inv)));
+        }
       } catch (err) {
         console.warn('[InvoiceService] DB find error, fallback:', err.message);
       }
     }
 
-    const filtered = inMemoryInvoices.filter(
-      (i) => (i.user?._id ? i.user._id.toString() : i.user?.toString()) === userId.toString()
-    );
+    const filtered = inMemoryInvoices.filter((i) => {
+      const u = i.user;
+      const uId = u?._id ? u._id.toString() : (u?.id ? u.id.toString() : (u ? u.toString() : ''));
+      return uId === userIdStr;
+    });
     return await Promise.all(filtered.map((inv) => this._populateInvoice(inv)));
   }
 
