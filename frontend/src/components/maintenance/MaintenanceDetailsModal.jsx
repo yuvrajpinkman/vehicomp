@@ -27,7 +27,9 @@ export default function MaintenanceDetailsModal({
 
   if (!isOpen || !record) return null;
 
-  const vehicle = record.vehicle || {};
+  const vehicle = typeof record.vehicle === 'object' && record.vehicle !== null ? record.vehicle : {};
+  const makeModel = vehicle.make && vehicle.model ? `${vehicle.make} ${vehicle.model}` : (typeof record.vehicle === 'string' ? `Vehicle (${record.vehicle.slice(-6)})` : 'Fleet Vehicle');
+  const regNum = vehicle.registrationNumber || (typeof record.vehicle === 'string' ? record.vehicle : 'N/A');
   const pri = priorityColors[record.priority] || priorityColors.MEDIUM;
   const stat = statusColors[record.status] || statusColors.SCHEDULED;
 
@@ -127,10 +129,10 @@ export default function MaintenanceDetailsModal({
               Assigned Vehicle
             </span>
             <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc', marginTop: '0.2rem' }}>
-              {vehicle.make} {vehicle.model} ({vehicle.year || '2024'})
+              {makeModel} ({vehicle.year || '2024'})
             </div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
-              Reg: <code style={{ color: '#93c5fd' }}>{vehicle.registrationNumber || 'N/A'}</code> • {vehicle.fuelType}
+              Reg: <code style={{ color: '#93c5fd' }}>{regNum}</code> • {vehicle.fuelType || 'PETROL'}
             </div>
           </div>
           <div>

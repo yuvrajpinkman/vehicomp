@@ -10,16 +10,11 @@ import {
   MapPin,
   Navigation,
   Compass,
-  Zap,
-  Fuel,
   Play,
   Pause,
   RefreshCw,
   Search,
-  Filter,
-  Car,
   Activity,
-  Layers,
 } from 'lucide-react';
 
 const FleetLocationMap = () => {
@@ -42,22 +37,30 @@ const FleetLocationMap = () => {
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
-    // Default center on Hyderabad / India
+    // Default center on Hyderabad
     const map = L.map(mapContainerRef.current, {
       center: [17.3850, 78.4867],
       zoom: 12,
       zoomControl: true,
     });
 
-    // Dark-themed tile layer with OpenStreetMap data
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    // Standard OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 19,
     }).addTo(map);
 
     mapInstanceRef.current = map;
 
+    // Trigger map invalidation after layout render
+    const resizeTimer = setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 300);
+
     return () => {
+      clearTimeout(resizeTimer);
       if (simIntervalRef.current) clearInterval(simIntervalRef.current);
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
@@ -68,11 +71,14 @@ const FleetLocationMap = () => {
 
   // Fetch Fleet Locations
   const fetchFleet = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const res = await getFleetLocations();
-      if (res && res.data) {
-        setVehicles(res.data);
-        updateMapMarkers(res.data);
+      const list = res?.data || res || [];
+      if (Array.isArray(list)) {
+        setVehicles(list);
+        updateMapMarkers(list);
       }
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to load fleet locations');
@@ -98,13 +104,15 @@ const FleetLocationMap = () => {
 
     const loadHistory = async () => {
       try {
-        const res = await getVehicleLocationHistory(selectedVehicle.vehicleId || selectedVehicle._id);
-        if (res && res.data) {
-          setHistoryTrail(res.data);
-          drawTrail(res.data);
+        const vid = selectedVehicle.vehicleId || selectedVehicle._id;
+        const res = await getVehicleLocationHistory(vid);
+        const trail = res?.data || res || [];
+        if (Array.isArray(trail)) {
+          setHistoryTrail(trail);
+          drawTrail(trail);
         }
       } catch (e) {
-        // history optional
+        // history is optional
       }
     };
 
@@ -142,12 +150,15 @@ const FleetLocationMap = () => {
     const currentMarkers = markersRef.current;
 
     vehicleList.forEach((v) => {
-      const lat = v.latitude || 17.3850;
-      const lng = v.longitude || 78.4867;
+      const vid = v.vehicleId || v._id;
+      if (!vid) return;
+
+      const lat = Number(v.latitude) || 17.3850;
+      const lng = Number(v.longitude) || 78.4867;
       const isMoving = v.speed > 0 || v.telemetryStatus === 'MOVING';
       const statusColor = isMoving ? '#10b981' : v.fleetStatus === 'RENTED' ? '#6366f1' : v.fleetStatus === 'MAINTENANCE' ? '#f59e0b' : '#38bdf8';
+      const regLabel = (v.registrationNumber || 'VEH-000').slice(-6);
 
-      // Custom high-tech HTML Marker
       const customIcon = L.divIcon({
         className: 'custom-fleet-marker',
         html: `
@@ -161,7 +172,7 @@ const FleetLocationMap = () => {
             background: #0f172a;
             border: 2px solid ${statusColor};
             border-radius: 50%;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
             cursor: pointer;
           ">
             ${isMoving ? `<div style="
@@ -178,56 +189,57 @@ const FleetLocationMap = () => {
               position: absolute;
               bottom: -18px;
               white-space: nowrap;
-              background: rgba(15, 23, 42, 0.9);
-              border: 1px solid rgba(255,255,255,0.15);
+              background: rgba(15, 23, 42, 0.95);
+              border: 1px solid rgba(255,255,255,0.2);
               color: #fff;
               font-size: 10px;
               font-weight: 700;
-              padding: 1px 4px;
+              padding: 1px 5px;
               border-radius: 4px;
-            ">${v.registrationNumber.slice(-6)}</div>
+            ">${regLabel}</div>
           </div>
         `,
         iconSize: [38, 38],
         iconAnchor: [19, 19],
       });
 
-      if (currentMarkers[v.vehicleId]) {
-        // Move existing marker
-        currentMarkers[v.vehicleId].setLatLng([lat, lng]);
-        currentMarkers[v.vehicleId].setIcon(customIcon);
+      if (currentMarkers[vid]) {
+        currentMarkers[vid].setLatLng([lat, lng]);
+        currentMarkers[vid].setIcon(customIcon);
       } else {
-        // Create new marker
         const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
         marker.on('click', () => {
           setSelectedVehicle(v);
           map.setView([lat, lng], 14, { animate: true });
         });
-        currentMarkers[v.vehicleId] = marker;
+        currentMarkers[vid] = marker;
       }
     });
+
+    // Invalidate size to guarantee tile rendering
+    map.invalidateSize();
   };
 
   // Center map on specific vehicle
   const handleSelectVehicle = (vehicle) => {
     setSelectedVehicle(vehicle);
     const map = mapInstanceRef.current;
-    if (map && vehicle.latitude && vehicle.longitude) {
-      map.setView([vehicle.latitude, vehicle.longitude], 14, { animate: true });
+    if (map) {
+      const lat = Number(vehicle.latitude) || 17.3850;
+      const lng = Number(vehicle.longitude) || 78.4867;
+      map.setView([lat, lng], 14, { animate: true });
+      map.invalidateSize();
     }
   };
 
   // Single Simulation Tick
   const handleSimulateTick = async (targetId) => {
-    const vid = targetId || selectedVehicle?.vehicleId || vehicles[0]?.vehicleId;
+    const vid = targetId || selectedVehicle?.vehicleId || selectedVehicle?._id || vehicles[0]?.vehicleId || vehicles[0]?._id;
     if (!vid) return;
 
     try {
-      const res = await simulateMovement(vid, 0.0025);
-      if (res && res.data) {
-        // Refresh fleet locations
-        await fetchFleet();
-      }
+      await simulateMovement(vid, 0.0025);
+      await fetchFleet();
     } catch (err) {
       console.error('Simulation tick error:', err);
     }
@@ -237,8 +249,7 @@ const FleetLocationMap = () => {
   useEffect(() => {
     if (simulating) {
       simIntervalRef.current = setInterval(() => {
-        // Move a random active or selected vehicle
-        const vid = selectedVehicle?.vehicleId || vehicles[Math.floor(Math.random() * vehicles.length)]?.vehicleId;
+        const vid = selectedVehicle?.vehicleId || selectedVehicle?._id || vehicles[Math.floor(Math.random() * vehicles.length)]?.vehicleId || vehicles[Math.floor(Math.random() * vehicles.length)]?._id;
         if (vid) {
           handleSimulateTick(vid);
         }
@@ -274,10 +285,10 @@ const FleetLocationMap = () => {
       <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.5rem', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
-            <Compass size={16} /> Stage 7 — Real-Time Telematics & GPS Tracking
+            <Compass size={16} /> Real-Time Telematics &amp; GPS Tracking
           </div>
           <h2 style={{ fontSize: '1.75rem', fontWeight: '800', margin: 0 }}>
-            Fleet Telematics & Live Location Map
+            Fleet Telematics &amp; Live Location Map
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem', margin: 0 }}>
             Monitor live coordinates, vehicle speed, battery levels, breadcrumb history, and simulated movement.
@@ -345,8 +356,14 @@ const FleetLocationMap = () => {
         </div>
       </div>
 
+      {error && (
+        <div style={{ padding: '0.75rem 1rem', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '10px', color: '#fca5a5', marginBottom: '1rem', fontSize: '0.9rem' }}>
+          ⚠️ {error}
+        </div>
+      )}
+
       {/* Main Grid: Interactive Map + Fleet Telematics Sidebar */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 380px) 1fr', gap: '1.5rem', height: '680px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 360px) 1fr', gap: '1.5rem', minHeight: '620px' }}>
         
         {/* Sidebar: Vehicle List & Telemetry HUD */}
         <div
@@ -359,6 +376,7 @@ const FleetLocationMap = () => {
             overflow: 'hidden',
             background: 'rgba(15, 23, 42, 0.8)',
             border: '1px solid rgba(255, 255, 255, 0.1)',
+            maxHeight: '620px'
           }}
         >
           {/* Search & Filter Header */}
@@ -413,12 +431,13 @@ const FleetLocationMap = () => {
               </div>
             ) : (
               filteredVehicles.map((v) => {
-                const isSelected = selectedVehicle?.vehicleId === v.vehicleId;
+                const vid = v.vehicleId || v._id;
+                const isSelected = selectedVehicle?.vehicleId === vid || selectedVehicle?._id === vid;
                 const isMoving = v.speed > 0 || v.telemetryStatus === 'MOVING';
 
                 return (
                   <div
-                    key={v.vehicleId}
+                    key={vid}
                     onClick={() => handleSelectVehicle(v)}
                     style={{
                       padding: '0.85rem',
@@ -457,7 +476,7 @@ const FleetLocationMap = () => {
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                       <MapPin size={12} color="#f43f5e" />
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {v.address || `${v.latitude?.toFixed(4)}, ${v.longitude?.toFixed(4)}`}
+                        {v.address || `${Number(v.latitude || 17.385).toFixed(4)}, ${Number(v.longitude || 78.486).toFixed(4)}`}
                       </span>
                     </div>
 
@@ -490,11 +509,13 @@ const FleetLocationMap = () => {
             borderRadius: '16px',
             overflow: 'hidden',
             position: 'relative',
+            height: '100%',
+            minHeight: '620px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
           }}
         >
           {/* Map Target Div */}
-          <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+          <div ref={mapContainerRef} style={{ width: '100%', height: '100%', minHeight: '620px', zIndex: 1 }} />
 
           {/* Selected Vehicle Overlay HUD */}
           {selectedVehicle && (
@@ -504,7 +525,7 @@ const FleetLocationMap = () => {
                 top: '16px',
                 right: '16px',
                 zIndex: 1000,
-                background: 'rgba(15, 23, 42, 0.9)',
+                background: 'rgba(15, 23, 42, 0.92)',
                 backdropFilter: 'blur(12px)',
                 border: '1px solid rgba(255, 255, 255, 0.15)',
                 borderRadius: '12px',
@@ -533,11 +554,11 @@ const FleetLocationMap = () => {
               <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Status:</span>
-                  <span style={{ color: '#10b981', fontWeight: '600' }}>{selectedVehicle.fleetStatus}</span>
+                  <span style={{ color: '#10b981', fontWeight: '600' }}>{selectedVehicle.fleetStatus || selectedVehicle.status}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-muted)' }}>GPS:</span>
-                  <code>{selectedVehicle.latitude?.toFixed(4)}, {selectedVehicle.longitude?.toFixed(4)}</code>
+                  <code>{Number(selectedVehicle.latitude || 17.385).toFixed(4)}, {Number(selectedVehicle.longitude || 78.486).toFixed(4)}</code>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Speed:</span>
@@ -550,7 +571,7 @@ const FleetLocationMap = () => {
               </div>
 
               <button
-                onClick={() => handleSimulateTick(selectedVehicle.vehicleId)}
+                onClick={() => handleSimulateTick(selectedVehicle.vehicleId || selectedVehicle._id)}
                 className="btn btn-primary"
                 style={{
                   width: '100%',

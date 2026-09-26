@@ -147,7 +147,7 @@ export default function CustomerVehicleBrowse({ onNavigateToReservations }) {
               border: '1px solid rgba(99, 102, 241, 0.3)',
             }}
           >
-            <Sparkles size={14} /> Stage 3 — Customer Vehicle Browsing
+            <Sparkles size={14} /> Customer Vehicle Browsing
           </span>
           <h2 style={{ fontSize: '2rem', fontWeight: '800', lineHeight: 1.2, margin: '0 0 0.5rem 0' }}>
             Find &amp; Reserve Your Ideal Ride
@@ -557,7 +557,7 @@ export default function CustomerVehicleBrowse({ onNavigateToReservations }) {
             {/* Header */}
             <div style={{ marginBottom: '1.5rem' }}>
               <span className="status-badge online" style={{ marginBottom: '0.5rem', display: 'inline-flex', gap: '0.3rem' }}>
-                <CheckCircle size={14} /> Stage 3 — Verified Vehicle Specifications
+                <CheckCircle size={14} /> Verified Vehicle Specifications
               </span>
               <h2 style={{ fontSize: '1.6rem', fontWeight: '800', margin: '0.25rem 0' }}>
                 {selectedVehicle.make} {selectedVehicle.model} ({selectedVehicle.year})

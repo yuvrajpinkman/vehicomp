@@ -84,7 +84,7 @@ export default function CustomerDashboard({ onBrowseVehicles }) {
             className="status-badge online"
             style={{ marginBottom: '0.5rem', display: 'inline-flex', gap: '0.4rem', alignItems: 'center' }}
           >
-            <CheckCircle size={14} /> Stage 7 — Customer Dashboard & Rating Active
+            <CheckCircle size={14} /> Customer Dashboard & Rating Active
           </span>
           <h2 style={{ fontSize: '1.8rem', fontWeight: '800', margin: '0.25rem 0' }}>
             Customer Management Hub

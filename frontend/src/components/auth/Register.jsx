@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { User, Mail, Lock, Phone, CreditCard, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
+import { User, Mail, Lock, Phone, CreditCard, UserPlus, AlertCircle, Loader2, ShieldCheck, UserCheck, KeyRound, ArrowLeft } from 'lucide-react';
 
-function Register({ onSwitchToLogin }) {
+function Register({ onSwitchToLogin, initialRole = null }) {
   const { register, authError, setAuthError } = useAuth();
+  const [selectedRole, setSelectedRole] = useState(initialRole); // null | 'CUSTOMER' | 'ADMIN'
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     phone: '',
     licenseNumber: '',
-    role: 'CUSTOMER',
+    adminSecret: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -19,10 +20,15 @@ function Register({ onSwitchToLogin }) {
     if (authError) setAuthError(null);
   };
 
+  const handleSelectRole = (role) => {
+    setSelectedRole(role);
+    if (authError) setAuthError(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.password) {
-      setAuthError('Please fill in required fields (Name, Email, Password).');
+      setAuthError('Please fill in all required fields (Name, Email, Password).');
       return;
     }
     if (formData.password.length < 6) {
@@ -31,33 +37,197 @@ function Register({ onSwitchToLogin }) {
     }
 
     setSubmitting(true);
-    const res = await register(formData);
+    const payload = {
+      ...formData,
+      role: selectedRole
+    };
+    const res = await register(payload);
     setSubmitting(false);
 
     if (res.success) {
-      setFormData({ name: '', email: '', password: '', phone: '', licenseNumber: '', role: 'CUSTOMER' });
+      // After successful registration -> redirect to Sign In page
+      if (onSwitchToLogin) {
+        onSwitchToLogin();
+      }
     }
   };
 
+  // If no role has been selected yet, show the Registration Selection Page
+  if (!selectedRole) {
+    return (
+      <div className="auth-card glass-panel" style={{ maxWidth: '600px', margin: '2rem auto', padding: '2.5rem 2rem', textAlign: 'center' }}>
+        <h2 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '0.5rem', color: '#f8fafc' }}>
+          Create Your Vehicomp Account
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '2rem' }}>
+          Select your registration type below to proceed:
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+          
+          {/* Customer Registration Card */}
+          <div
+            onClick={() => handleSelectRole('CUSTOMER')}
+            style={{
+              padding: '2rem 1.5rem',
+              borderRadius: '16px',
+              background: 'rgba(99, 102, 241, 0.1)',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              cursor: 'pointer',
+              transition: 'all 0.25s ease',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              boxShadow: '0 4px 14px rgba(99, 102, 241, 0.15)'
+            }}
+          >
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '1.25rem',
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+            }}>
+              <UserCheck size={28} color="#ffffff" />
+            </div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', color: '#ffffff' }}>
+              Customer Registration
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.4, margin: 0 }}>
+              Register as a customer to browse vehicles, manage reservations, rentals, and invoices.
+            </p>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{
+                marginTop: '1.5rem',
+                width: '100%',
+                padding: '0.65rem',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                fontWeight: '600'
+              }}
+            >
+              Select Customer
+            </button>
+          </div>
+
+          {/* Admin Registration Card */}
+          <div
+            onClick={() => handleSelectRole('ADMIN')}
+            style={{
+              padding: '2rem 1.5rem',
+              borderRadius: '16px',
+              background: 'rgba(16, 185, 129, 0.1)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              cursor: 'pointer',
+              transition: 'all 0.25s ease',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              boxShadow: '0 4px 14px rgba(16, 185, 129, 0.15)'
+            }}
+          >
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '1.25rem',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+            }}>
+              <ShieldCheck size={28} color="#ffffff" />
+            </div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', color: '#ffffff' }}>
+              Admin Registration
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.4, margin: 0 }}>
+              Register as a fleet administrator to manage vehicle inventory, maintenance, and GPS telematics.
+            </p>
+            <button
+              type="button"
+              className="btn"
+              style={{
+                marginTop: '1.5rem',
+                width: '100%',
+                padding: '0.65rem',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #10b981, #059669)',
+                color: '#ffffff',
+                fontWeight: '600',
+                border: 'none'
+              }}
+            >
+              Select Admin
+            </button>
+          </div>
+
+        </div>
+
+        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+          Already registered?{' '}
+          <button
+            onClick={onSwitchToLogin}
+            style={{ background: 'none', border: 'none', color: '#818cf8', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            Sign in here
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const isCustomer = selectedRole === 'CUSTOMER';
+  const themeColor = isCustomer ? '#6366f1' : '#10b981';
+
   return (
-    <div className="auth-card glass-panel" style={{ maxWidth: '460px', margin: '0 auto', padding: '2.5rem 2rem' }}>
+    <div className="auth-card glass-panel" style={{ maxWidth: '480px', margin: '1rem auto', padding: '2rem 1.75rem' }}>
+      
+      <button
+        onClick={() => setSelectedRole(null)}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: 'var(--text-muted)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+          fontSize: '0.85rem',
+          cursor: 'pointer',
+          marginBottom: '1rem'
+        }}
+      >
+        <ArrowLeft size={16} /> Back to registration selection
+      </button>
+
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <div style={{
           width: '52px',
           height: '52px',
           borderRadius: '50%',
-          background: 'rgba(16, 185, 129, 0.15)',
-          border: '1px solid rgba(16, 185, 129, 0.3)',
+          background: isCustomer ? 'rgba(99, 102, 241, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+          border: `1px solid ${isCustomer ? 'rgba(99, 102, 241, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          margin: '0 auto 1rem auto'
+          margin: '0 auto 0.75rem auto'
         }}>
-          <UserPlus color="#10b981" size={26} />
+          {isCustomer ? <UserCheck color="#6366f1" size={26} /> : <ShieldCheck color="#10b981" size={26} />}
         </div>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.25rem' }}>Create Account</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-          Register as a Customer to reserve and manage rentals
+        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.25rem' }}>
+          {isCustomer ? 'Customer Registration' : 'Admin Registration'}
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+          {isCustomer
+            ? 'Create your customer account to reserve and manage rentals'
+            : 'Register administrative account for fleet management'}
         </p>
       </div>
 
@@ -74,7 +244,7 @@ function Register({ onSwitchToLogin }) {
           fontSize: '0.875rem',
           marginBottom: '1.25rem'
         }}>
-          <AlertCircle size={18} style={{ shrink: 0 }} />
+          <AlertCircle size={18} style={{ flexShrink: 0 }} />
           <span>{authError}</span>
         </div>
       )}
@@ -89,7 +259,7 @@ function Register({ onSwitchToLogin }) {
             <input
               type="text"
               name="name"
-              placeholder="John Doe"
+              placeholder={isCustomer ? "John Doe" : "Fleet Admin Jane"}
               value={formData.name}
               onChange={handleChange}
               required
@@ -100,7 +270,7 @@ function Register({ onSwitchToLogin }) {
                 border: '1px solid rgba(255, 255, 255, 0.12)',
                 background: 'rgba(15, 23, 42, 0.6)',
                 color: '#fff',
-                fontSize: '0.95rem',
+                fontSize: '0.9rem',
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
@@ -117,7 +287,7 @@ function Register({ onSwitchToLogin }) {
             <input
               type="email"
               name="email"
-              placeholder="john@example.com"
+              placeholder={isCustomer ? "john@example.com" : "admin@vehicomp.com"}
               value={formData.email}
               onChange={handleChange}
               required
@@ -128,7 +298,7 @@ function Register({ onSwitchToLogin }) {
                 border: '1px solid rgba(255, 255, 255, 0.12)',
                 background: 'rgba(15, 23, 42, 0.6)',
                 color: '#fff',
-                fontSize: '0.95rem',
+                fontSize: '0.9rem',
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
@@ -157,7 +327,7 @@ function Register({ onSwitchToLogin }) {
                 border: '1px solid rgba(255, 255, 255, 0.12)',
                 background: 'rgba(15, 23, 42, 0.6)',
                 color: '#fff',
-                fontSize: '0.95rem',
+                fontSize: '0.9rem',
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
@@ -185,7 +355,7 @@ function Register({ onSwitchToLogin }) {
                   border: '1px solid rgba(255, 255, 255, 0.12)',
                   background: 'rgba(15, 23, 42, 0.6)',
                   color: '#fff',
-                  fontSize: '0.875rem',
+                  fontSize: '0.85rem',
                   outline: 'none',
                   boxSizing: 'border-box'
                 }}
@@ -195,15 +365,19 @@ function Register({ onSwitchToLogin }) {
 
           <div>
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.35rem', color: 'var(--text-muted)' }}>
-              Driver License #
+              {isCustomer ? 'Driver License #' : 'Admin Code / PIN'}
             </label>
             <div style={{ position: 'relative' }}>
-              <CreditCard size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+              {isCustomer ? (
+                <CreditCard size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+              ) : (
+                <KeyRound size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+              )}
               <input
                 type="text"
-                name="licenseNumber"
-                placeholder="DL-98213"
-                value={formData.licenseNumber}
+                name={isCustomer ? "licenseNumber" : "adminSecret"}
+                placeholder={isCustomer ? "DL-98213" : "ADM-778"}
+                value={isCustomer ? formData.licenseNumber : formData.adminSecret}
                 onChange={handleChange}
                 style={{
                   width: '100%',
@@ -212,7 +386,7 @@ function Register({ onSwitchToLogin }) {
                   border: '1px solid rgba(255, 255, 255, 0.12)',
                   background: 'rgba(15, 23, 42, 0.6)',
                   color: '#fff',
-                  fontSize: '0.875rem',
+                  fontSize: '0.85rem',
                   outline: 'none',
                   boxSizing: 'border-box'
                 }}
@@ -228,22 +402,26 @@ function Register({ onSwitchToLogin }) {
             width: '100%',
             padding: '0.85rem',
             borderRadius: '8px',
-            background: 'linear-gradient(135deg, #10b981, #059669)',
+            background: isCustomer
+              ? 'linear-gradient(135deg, #6366f1, #4f46e5)'
+              : 'linear-gradient(135deg, #10b981, #059669)',
             color: '#fff',
             fontWeight: '600',
             fontSize: '0.95rem',
             border: 'none',
             cursor: submitting ? 'not-allowed' : 'pointer',
-            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+            boxShadow: isCustomer
+              ? '0 4px 12px rgba(99, 102, 241, 0.3)'
+              : '0 4px 12px rgba(16, 185, 129, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '0.5rem',
-            marginTop: '0.75rem'
+            marginTop: '0.5rem'
           }}
         >
           {submitting ? <Loader2 size={18} className="spin" /> : <UserPlus size={18} />}
-          {submitting ? 'Creating Account...' : 'Register Customer'}
+          {submitting ? 'Registering...' : (isCustomer ? 'Register as Customer' : 'Register as Admin')}
         </button>
       </form>
 
@@ -254,14 +432,14 @@ function Register({ onSwitchToLogin }) {
           style={{
             background: 'none',
             border: 'none',
-            color: '#34d399',
+            color: themeColor,
             fontWeight: '600',
             cursor: 'pointer',
             textDecoration: 'underline',
             padding: 0
           }}
         >
-          Sign in here
+          Sign in to your account
         </button>
       </div>
     </div>

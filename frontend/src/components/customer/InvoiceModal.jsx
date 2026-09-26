@@ -243,7 +243,7 @@ function InvoiceModal({ invoice, onClose, onPaymentSuccess }) {
                 gap: '0.4rem',
               }}
             >
-              <DollarSign size={16} color="#818cf8" /> Itemized Pricing Breakdown (Stage 6)
+              <DollarSign size={16} color="#818cf8" /> Itemized Pricing Breakdown
             </h4>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.875rem' }}>

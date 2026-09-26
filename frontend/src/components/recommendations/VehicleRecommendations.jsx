@@ -102,7 +102,7 @@ const VehicleRecommendations = ({ onSelectVehicle, onNavigateToBrowse }) => {
       <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.75rem', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
-            <Sparkles size={16} /> Stage 6 — Multi-Attribute Recommendation Engine
+            <Sparkles size={16} /> Multi-Attribute Recommendation Engine
           </div>
           <h2 style={{ fontSize: '1.75rem', fontWeight: '800', margin: 0, letterSpacing: '-0.02em' }}>
             Smart Vehicle Matcher & Ranking

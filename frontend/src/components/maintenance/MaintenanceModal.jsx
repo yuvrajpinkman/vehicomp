@@ -88,10 +88,12 @@ export default function MaintenanceModal({ isOpen, onClose, onSave, recordToEdit
     setLoadingVehicles(true);
     try {
       const res = await vehicleService.getAll({ limit: 100 });
-      const list = res.data?.data || res.data || [];
+      const raw = res.data?.data || res.data || [];
+      const list = Array.isArray(raw) ? raw : (raw.vehicles || []);
       setVehicles(Array.isArray(list) ? list : []);
     } catch (err) {
       console.warn('Failed to load fleet vehicles for maintenance dropdown:', err.message);
+      setVehicles([]);
     } finally {
       setLoadingVehicles(false);
     }

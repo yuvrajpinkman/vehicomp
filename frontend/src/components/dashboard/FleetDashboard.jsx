@@ -33,10 +33,17 @@ export default function FleetDashboard({ onNavigateToFleet, onNavigateToMaintena
   const [trend, setTrend] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState(null);
+  const [syncNotice, setSyncNotice] = useState(null);
   const [error, setError] = useState(null);
 
-  const fetchDashboardData = useCallback(async () => {
-    setLoading(true);
+  const fetchDashboardData = useCallback(async (isManualRefresh = false) => {
+    if (isManualRefresh) {
+      setRefreshing(true);
+    } else if (!data) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const [statsRes, trendRes, perfRes] = await Promise.all([
@@ -48,16 +55,27 @@ export default function FleetDashboard({ onNavigateToFleet, onNavigateToMaintena
       setData(statsRes.data?.data || null);
       setTrend(trendRes.data?.data || []);
       setLeaderboard(perfRes.data?.data || []);
+      setLastRefreshed(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+
+      if (isManualRefresh) {
+        setSyncNotice('Telemetry & Financial Analytics Synced');
+        setTimeout(() => setSyncNotice(null), 3000);
+      }
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to load dashboard metrics');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, []);
+  }, [data]);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+    fetchDashboardData(false);
+    const interval = setInterval(() => {
+      fetchDashboardData(false);
+    }, 15000); // Live sync every 15s
+    return () => clearInterval(interval);
+  }, []);
 
   if (loading && !data) {
     return (
@@ -74,7 +92,7 @@ export default function FleetDashboard({ onNavigateToFleet, onNavigateToMaintena
       <div className="glass-panel" style={{ padding: '2rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', color: '#fca5a5' }}>
         <h3>Error Loading Dashboard</h3>
         <p>{error}</p>
-        <button onClick={fetchDashboardData} className="btn btn-primary" style={{ marginTop: '1rem' }}>
+        <button onClick={() => fetchDashboardData(true)} className="btn btn-primary" style={{ marginTop: '1rem' }}>
           Retry
         </button>
       </div>
@@ -95,19 +113,40 @@ export default function FleetDashboard({ onNavigateToFleet, onNavigateToMaintena
           <h2 style={{ fontSize: '1.6rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.6rem', letterSpacing: '-0.02em' }}>
             <Activity size={26} color="var(--primary)" /> Executive Fleet &amp; Revenue Dashboard
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
-            Live vehicle telemetry, fleet utilization, real-time revenue generation, and maintenance cost analysis.
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: '0.2rem', flexWrap: 'wrap' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
+              Live vehicle telemetry, fleet utilization, real-time revenue generation, and maintenance cost analysis.
+            </p>
+            {lastRefreshed && (
+              <span style={{ fontSize: '0.75rem', background: 'rgba(16, 185, 129, 0.12)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '0.15rem 0.5rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', display: 'inline-block' }} />
+                Live Sync: {lastRefreshed}
+              </span>
+            )}
+            {syncNotice && (
+              <span style={{ fontSize: '0.75rem', background: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: '1px solid rgba(99, 102, 241, 0.3)', padding: '0.15rem 0.6rem', borderRadius: '6px', fontWeight: 600 }}>
+                ✓ {syncNotice}
+              </span>
+            )}
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button
-            onClick={fetchDashboardData}
-            disabled={loading}
+            onClick={() => fetchDashboardData(true)}
+            disabled={refreshing}
             className="btn"
-            style={{ background: 'rgba(255,255,255,0.06)', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            style={{
+              background: refreshing ? 'rgba(99, 102, 241, 0.25)' : 'rgba(255,255,255,0.06)',
+              color: refreshing ? '#a5b4fc' : '#cbd5e1',
+              border: refreshing ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid transparent',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              transition: 'all 0.2s ease',
+            }}
           >
-            <RefreshCw size={16} className={loading ? 'spin' : ''} /> Refresh
+            <RefreshCw size={16} className={refreshing ? 'spin' : ''} /> {refreshing ? 'Syncing...' : 'Refresh'}
           </button>
           {onNavigateToFleet && (
             <button

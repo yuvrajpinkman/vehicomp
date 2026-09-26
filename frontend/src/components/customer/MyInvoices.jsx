@@ -66,7 +66,7 @@ function MyInvoices({ onBrowseVehicles }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <span className="status-badge online" style={{ marginBottom: '0.4rem', display: 'inline-flex', gap: '0.4rem', alignItems: 'center' }}>
-            <FileText size={14} /> Stage 6 — Pricing & Invoices
+            <FileText size={14} /> Pricing & Invoices
           </span>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginTop: '0.2rem' }}>
             My Invoices & Billing Breakdown 🧾
